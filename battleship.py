@@ -91,6 +91,11 @@ class PT(UNIT):
 class AT(UNIT):
     def __init__(self, side: int):
         UNIT.__init__(self, (1, 3), side, 'at', (12, 0), 'artillery.png')
+        
+# Tank - 2x2
+class TK(UNIT):
+    def __init__(self, side: int):
+        UNIT.__init__(self, (2, 2), side, 'tk', (10, 0), 'tank.png')
 
 
 class Button:
