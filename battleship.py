@@ -126,11 +126,7 @@ def drawGrid(grid, flip=False):
         draw.line(win, (255, 255, 255), (x, 0), (x, 1000), 2)
     else:
         draw.line(win, (255, 255, 255), (700, 0), (700, 1000), 2)
-
-    for ROW, ITEMS in enumerate(GRIDS[grid]):
-        for COL, SHIP in enumerate(ITEMS):
-            if SHIP:
-                win.blit(text.render(SHIP.name, True, (255, 255, 255)), ((COL + 0.1) * 70 + x, (ROW + 0.1) * 70 + x))
+    win.blit(BG,(0,0))
 
 
 # INITIALIZATION
@@ -140,6 +136,11 @@ win = display.set_mode((1000, 700))
 GRIDS = [[[None for i in range(10)] for j in range(10)] for k in range(2)]
 text = font.Font('INVASION2000.TTF', 20)
 
+BG = image.load('UI/BG.png')
+CROSS = image.load('UI/CROSSHAIR.png')
+HIT = image.load('UI/FIRE.png')
+MISS = image.load('UI/HOLE.png')
+BAR = image.load('UI/SLIDE.png')
 
 # PLACING PHASE
 ALL_UNITS = [[PT(i), AT(i), TK(i)] for i in range(2)]
@@ -178,12 +179,14 @@ for player, units in enumerate(ALL_UNITS):
 inGame = True
 Menu = 0  # 0 - main; 1 = fire; 2 - settings.
 while inGame:
-    for player in range(2):
+    for player, Units in enumerate(ALL_UNITS):
         inRound = True
         while inRound:
             win.fill((0,0,0))
             if Menu == 0:
                 drawGrid(player)
+                for unit in Units:
+                    unit.draw()
 
             for Event in event.get():
                 if Event.type == QUIT:
