@@ -140,6 +140,7 @@ win = display.set_mode((1000, 700))
 GRIDS = [[[None for i in range(10)] for j in range(10)] for k in range(2)]
 text = font.Font('INVASION2000.TTF', 20)
 
+
 # PLACING PHASE
 ALL_UNITS = [[PT(i), AT(i), TK(i)] for i in range(2)]
 for player, units in enumerate(ALL_UNITS):
