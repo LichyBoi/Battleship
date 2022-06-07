@@ -91,11 +91,13 @@ class PT(UNIT):
 class AT(UNIT):
     def __init__(self, side: int):
         UNIT.__init__(self, (1, 3), side, 'at', (12, 0), 'artillery.png')
-        
+
+
 # Tank - 2x2
 class TK(UNIT):
     def __init__(self, side: int):
-        UNIT.__init__(self, (2, 2), side, 'tk', (10, 0), 'tank.png')
+        UNIT.__init__(self, (2, 2), side, 'tk', (12, 3), 'tank.png')
+        self.img = [self.img[0], self.img[0]]
 
 
 class Button:
@@ -139,7 +141,7 @@ GRIDS = [[[None for i in range(10)] for j in range(10)] for k in range(2)]
 text = font.Font('INVASION2000.TTF', 20)
 
 # PLACING PHASE
-ALL_UNITS = [[PT(0), AT(0)], [PT(1), AT(1)]]
+ALL_UNITS = [[PT(i), AT(i), TK(i)] for i in range(2)]
 for player, units in enumerate(ALL_UNITS):
     Dragging = None
     while True:
