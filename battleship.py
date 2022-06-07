@@ -7,7 +7,7 @@ class UNIT:
         self.size = size
         self.side = side
         self.name = f'{tp}{side}'
-        self.img = image.load('images/' + img)
+        self.img = image.load('Ships/' + img)
         self.img = [self.img, transform.rotate(self.img,90)]
         self.rotate = 0
         self.hitbox = self.img[0].get_rect(topleft=(self.coord[0]*70,self.coord[1]*70))
