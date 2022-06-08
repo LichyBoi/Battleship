@@ -121,17 +121,20 @@ class CROSS:
         self.offset = offset
 
     def draw(self):
-        x,y = mouse.get_pos()
+        x, y = mouse.get_pos()
         x = x//70*70 + self.offset
         y = y//70*70 + self.offset
         win.blit(self.img,(x,y))
+        return x, y
 
 
 def drawGrid(grid, flip=False):
-    x = 0
     if flip:
         x = 300
-    win.blit(BG, (0, 0))
+        win.blit(aBG, (0, 0))
+    else:
+        x = 0
+        win.blit(BG, (0, 0))
     for i in range(9):
         draw.line(win, (255, 255, 255), ((i + 1) * 70 + x, 0), ((i + 1) * 70 + x, 700), 2)
         draw.line(win, (200, 200, 200), (x, (i + 1) * 70), (700 + x, (i + 1) * 70), 2)
@@ -139,7 +142,6 @@ def drawGrid(grid, flip=False):
         draw.line(win, (255, 255, 255), (x, 0), (x, 1000), 2)
     else:
         draw.line(win, (255, 255, 255), (700, 0), (700, 1000), 2)
-
 
 
 # INITIALIZATION
@@ -150,12 +152,19 @@ GRIDS = [[[None for i in range(10)] for j in range(10)] for k in range(2)]
 text = font.Font('INVASION2000.TTF', 20)
 
 BG = image.load('UI/BG.png')
+aBG = image.load('UI/AG.png')
+
 AIM = CROSS('UI/CROSSHAIR.png')
 CUR = CROSS('UI/CURSOR.png')
-HIT = image.load('UI/FIRE.png')
-MISS = image.load('UI/HOLE.png')
 
-BAR = Button((881,0), 'UI/SLIDE.png')
+HIT = image.load('UI/FIRE.png')
+aHIT = image.load('UI/AHIT.png')
+
+MISS = image.load('UI/HOLE.png')
+aMISS = image.load('UI/AMISS.png')
+
+BAR = Button((881, 0), 'UI/SLIDE.png')
+aBAR = Button((0, 0), 'UI/SLIDE2.png')
 
 # PLACING PHASE
 ALL_UNITS = [[PT(i), AT(i), TK(i)] for i in range(2)]
@@ -213,6 +222,14 @@ while inGame:
                             Menu = 1
 
             elif Menu == 1:
-
+                win.blit(aBG, (0,0))
+                aBAR.draw()
+                AIM.draw()
+                for Event in event.get():
+                    if Event.type == QUIT:
+                        quit()
+                    elif Event.type == MOUSEBUTTONUP:
+                        if aBAR.click(Event):
+                            Menu = 0
 
             display.update()
