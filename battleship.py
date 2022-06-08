@@ -101,7 +101,7 @@ class TK(UNIT):
 
 
 class Button:
-    def __init__(self, topleft: tuple, result, img):
+    def __init__(self, topleft: tuple, img, result=True):
         self.img = image.load(img)
         self.topleft = topleft
         self.hitbox = self.img.get_rect(topleft=topleft)
@@ -115,10 +115,23 @@ class Button:
             return self.result
 
 
+class CROSS:
+    def __init__(self, img:str, offset=0):
+        self.img = image.load(img)
+        self.offset = offset
+
+    def draw(self):
+        x,y = mouse.get_pos()
+        x = x//70*70 + self.offset
+        y = y//70*70 + self.offset
+        win.blit(self.img,(x,y))
+
+
 def drawGrid(grid, flip=False):
     x = 0
     if flip:
         x = 300
+    win.blit(BG, (0, 0))
     for i in range(9):
         draw.line(win, (255, 255, 255), ((i + 1) * 70 + x, 0), ((i + 1) * 70 + x, 700), 2)
         draw.line(win, (200, 200, 200), (x, (i + 1) * 70), (700 + x, (i + 1) * 70), 2)
@@ -126,7 +139,7 @@ def drawGrid(grid, flip=False):
         draw.line(win, (255, 255, 255), (x, 0), (x, 1000), 2)
     else:
         draw.line(win, (255, 255, 255), (700, 0), (700, 1000), 2)
-    win.blit(BG,(0,0))
+
 
 
 # INITIALIZATION
@@ -137,10 +150,12 @@ GRIDS = [[[None for i in range(10)] for j in range(10)] for k in range(2)]
 text = font.Font('INVASION2000.TTF', 20)
 
 BG = image.load('UI/BG.png')
-CROSS = image.load('UI/CROSSHAIR.png')
+AIM = CROSS('UI/CROSSHAIR.png')
+CUR = CROSS('UI/CURSOR.png')
 HIT = image.load('UI/FIRE.png')
 MISS = image.load('UI/HOLE.png')
-BAR = image.load('UI/SLIDE.png')
+
+BAR = Button((881,0), 'UI/SLIDE.png')
 
 # PLACING PHASE
 ALL_UNITS = [[PT(i), AT(i), TK(i)] for i in range(2)]
@@ -182,13 +197,22 @@ while inGame:
     for player, Units in enumerate(ALL_UNITS):
         inRound = True
         while inRound:
-            win.fill((0,0,0))
+
             if Menu == 0:
                 drawGrid(player)
+                BAR.draw()
+                CUR.draw()
                 for unit in Units:
                     unit.draw()
 
-            for Event in event.get():
-                if Event.type == QUIT:
-                    quit()
+                for Event in event.get():
+                    if Event.type == QUIT:
+                        quit()
+                    elif Event.type == MOUSEBUTTONUP:
+                        if BAR.click(Event):
+                            Menu = 1
+
+            elif Menu == 1:
+
+
             display.update()
