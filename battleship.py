@@ -122,8 +122,8 @@ class CROSS:
 
     def draw(self):
         x, y = mouse.get_pos()
-        x = x//70*70 + self.offset
-        y = y//70*70
+        x = (x-15)//70*70 + self.offset
+        y = (y)//70*70
         win.blit(self.img,(x,y))
         return x, y
 
@@ -212,6 +212,13 @@ while inGame:
                 drawGrid(player)
                 BAR.draw()
                 CUR.draw()
+                for row, items in enumerate(HITGRIDS[player]):
+                    for column, item in enumerate(items):
+                        if item is not None:
+                            if item:
+                                win.blit(aHIT, (70*column, 70*row))
+                            else:
+                                win.blit(aMISS, (70*column, 70*row))
                 for unit in Units:
                     unit.draw()
 
@@ -226,11 +233,29 @@ while inGame:
                 win.blit(aBG, (0,0))
                 aBAR.draw()
                 AIM.draw()
+                for row, items in enumerate(HITGRIDS[1-player]):
+                    for column, item in enumerate(items):
+                        if item is not None:
+                            if item:
+                                print('HIT')
+                                win.blit(aHIT, (70*column + 300, 70*row))
+                            else:
+                                win.blit(aMISS, (70*column + 300, 70*row))
                 for Event in event.get():
                     if Event.type == QUIT:
                         quit()
                     elif Event.type == MOUSEBUTTONUP:
                         if aBAR.click(Event):
                             Menu = 0
+                        elif (Event.pos[0])//70*70 + 20> 0:
+                            x, y = Event.pos
+                            x = (x-300)//70
+                            y //=70
+                            print(x,y)
+                            if HITGRIDS[1-player][y][x] is None:
+                                if GRIDS[1-player][y][x] is None:
+                                    HITGRIDS[1-player][y][x] = False
+                                else:
+                                    HITGRIDS[1 - player][y][x] = True
 
             display.update()
