@@ -72,6 +72,12 @@ class UNIT:
                     pass
         self.drag = True
 
+    def hit(self):
+        self.health -=1
+        if self.health <= 0:
+            self.isDead = True
+            self.image = self.deadImage
+
     def __str__(self):
         return self.name
 
@@ -130,22 +136,6 @@ class CROSS:
         return x, y
 
 
-def drawGrid(grid, flip=False):
-    if flip:
-        x = 300
-        win.blit(aBG, (0, 0))
-    else:
-        x = 0
-        win.blit(BG, (0, 0))
-    for i in range(9):
-        draw.line(win, (255, 255, 255), ((i + 1) * 70 + x, 0), ((i + 1) * 70 + x, 700), 2)
-        draw.line(win, (200, 200, 200), (x, (i + 1) * 70), (700 + x, (i + 1) * 70), 2)
-    if x:
-        draw.line(win, (255, 255, 255), (x, 0), (x, 1000), 2)
-    else:
-        draw.line(win, (255, 255, 255), (700, 0), (700, 1000), 2)
-
-
 # INITIALIZATION
 init()
 win = display.set_mode((1000, 700))
@@ -176,7 +166,7 @@ for player, units in enumerate(ALL_UNITS):
     while True:
 
         win.fill((0, 0, 0))
-        drawGrid(player)
+        win.blit(BG, (0,0))
         for u in units:
             u.draw()
 
@@ -211,7 +201,7 @@ while inGame:
         while inRound:
 
             if Menu == 0:
-                drawGrid(player)
+                win.blit(BG, (0,0))
                 BAR.draw()
                 CUR.draw()
                 for row, items in enumerate(HITGRIDS[player]):
@@ -257,6 +247,6 @@ while inGame:
                                     HITGRIDS[1-player][y][x] = False
                                 else:
                                     HITGRIDS[1 - player][y][x] = True
-                                    GRIDS[1 - player][y][x].health.hit
+                                    GRIDS[1 - player][y][x].hit
 
             display.update()
