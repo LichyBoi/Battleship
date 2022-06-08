@@ -123,7 +123,7 @@ class CROSS:
     def draw(self):
         x, y = mouse.get_pos()
         x = x//70*70 + self.offset
-        y = y//70*70 + self.offset
+        y = y//70*70
         win.blit(self.img,(x,y))
         return x, y
 
@@ -149,12 +149,13 @@ init()
 win = display.set_mode((1000, 700))
 # creates two grids, 10 by 10, completely filled with None.
 GRIDS = [[[None for i in range(10)] for j in range(10)] for k in range(2)]
+HITGRIDS = [[[None for i in range(10)] for j in range(10)] for k in range(2)]
 text = font.Font('INVASION2000.TTF', 20)
 
 BG = image.load('UI/BG.png')
 aBG = image.load('UI/AG.png')
 
-AIM = CROSS('UI/CROSSHAIR.png')
+AIM = CROSS('UI/CROSSHAIR.png', 20)
 CUR = CROSS('UI/CURSOR.png')
 
 HIT = image.load('UI/FIRE.png')
@@ -163,7 +164,7 @@ aHIT = image.load('UI/AHIT.png')
 MISS = image.load('UI/HOLE.png')
 aMISS = image.load('UI/AMISS.png')
 
-BAR = Button((881, 0), 'UI/SLIDE.png')
+BAR = Button((965, 0), 'UI/SLIDE.png')
 aBAR = Button((0, 0), 'UI/SLIDE2.png')
 
 # PLACING PHASE
