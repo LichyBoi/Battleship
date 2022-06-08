@@ -12,6 +12,8 @@ class UNIT:
         self.rotate = 0
         self.hitbox = self.img[0].get_rect(topleft=(self.coord[0]*70,self.coord[1]*70))
         self.drag = False
+        self.health = size[0]*size[1]
+        self.isDead = False
 
     def checkClick(self, click):
         # Rotate on right click
@@ -237,7 +239,6 @@ while inGame:
                     for column, item in enumerate(items):
                         if item is not None:
                             if item:
-                                print('HIT')
                                 win.blit(aHIT, (70*column + 300, 70*row))
                             else:
                                 win.blit(aMISS, (70*column + 300, 70*row))
@@ -247,15 +248,15 @@ while inGame:
                     elif Event.type == MOUSEBUTTONUP:
                         if aBAR.click(Event):
                             Menu = 0
-                        elif (Event.pos[0])//70*70 + 20> 0:
+                        elif (Event.pos[0])//70*70 >= 280:
                             x, y = Event.pos
                             x = (x-300)//70
-                            y //=70
-                            print(x,y)
+                            y //= 70
                             if HITGRIDS[1-player][y][x] is None:
                                 if GRIDS[1-player][y][x] is None:
                                     HITGRIDS[1-player][y][x] = False
                                 else:
                                     HITGRIDS[1 - player][y][x] = True
+                                    GRIDS[1 - player][y][x].health.hit
 
             display.update()
