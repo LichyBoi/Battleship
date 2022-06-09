@@ -183,7 +183,7 @@ aBAR = Button((0, 0), 'UI/SLIDE2.png')
 MENU = image.load('UI/MENU.png')
 newG = Button((380,340),(220,90))
 loadG = Button((330,110),(220,75))
-#HELP = Button()
+HELP = Button((580,40),(165,145))
 # MENU
 inMenu = True
 while inMenu:
@@ -193,8 +193,22 @@ while inMenu:
         if Event.type == QUIT:
             quit()
         elif Event.type == MOUSEBUTTONUP:
+            if newG.click(Event):
+                inMenu = False
+            elif loadG.click(Event):
+                print ("Loaded Game")
+            elif HELP.click(Event):
+                print ("Help")
+            else:
+                print (Event.pos)
 
-
+    display.update()
+'''for Event in event.get():
+                if Event.type == QUIT:
+                    quit()
+                elif Event.type == MOUSEBUTTONUP:
+                    if BAR.click(Event):
+                        Menu = 1'''
 '''
     draw bg
     loop through buttons:
