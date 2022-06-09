@@ -247,6 +247,7 @@ while inGame:
                         if aBAR.click(Event):
                             Menu = 0
                         elif (Event.pos[0]) // 70 * 70 >= 280:
+                            # Hit section - might want to make this a function for powerups
                             x, y = Event.pos
                             x = (x - 300) // 70
                             y //= 70
@@ -256,6 +257,7 @@ while inGame:
                                 else:
                                     HITGRIDS[1 - player][y][x] = True
                                     GRIDS[1 - player][y][x].hit()
+                            # ----------------------------------------
                             inRound = False
                             break
             display.update()
