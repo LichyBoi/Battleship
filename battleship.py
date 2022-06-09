@@ -180,6 +180,27 @@ aMISS = image.load('UI/AMISS.png')
 BAR = Button((965, 0), 'UI/SLIDE.png')
 aBAR = Button((0, 0), 'UI/SLIDE2.png')
 
+MENU = image.load('UI/MENU.png')
+newG = Button((380,340),(220,90))
+loadG = Button((330,110),(220,75))
+#HELP = Button()
+# MENU
+inMenu = True
+while inMenu:
+    win.blit(MENU,(0,0))
+
+    for Event in event.get():
+        if Event.type == QUIT:
+            quit()
+        elif Event.type == MOUSEBUTTONUP:
+
+
+'''
+    draw bg
+    loop through buttons:
+        if button: do button
+        '''
+
 # PLACING PHASE
 ALL_UNITS = [[PT(i), AT(i), TK(i)] for i in range(2)]
 for player, units in enumerate(ALL_UNITS):
