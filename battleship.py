@@ -2,31 +2,34 @@ from pygame import *
 
 
 class UNIT:
-    def __init__(self, size: tuple, side: int, tp: str, coord: tuple, img: str):
+    def __init__(self, size: tuple, side: int, tp: str, coord: tuple, img: str, deadImage):
         self.coord = coord
         self.size = size
         self.side = side
         self.name = f'{tp}{side}'
         self.img = image.load('Ships/' + img)
-        self.img = [self.img, transform.rotate(self.img,90)]
+        self.img = [self.img, transform.rotate(self.img, 90)]
         self.rotate = 0
-        self.hitbox = self.img[0].get_rect(topleft=(self.coord[0]*70,self.coord[1]*70))
+        self.hitbox = self.img[0].get_rect(topleft=(self.coord[0] * 70, self.coord[1] * 70))
         self.drag = False
-        self.health = size[0]*size[1]
+        self.health = size[0] * size[1]
         self.isDead = False
+        self.deadImage = image.load(deadImage)
+        self.deadImage = [self.deadImage, transform.rotate(self.deadImage,90)]
 
     def checkClick(self, click):
         # Rotate on right click
         if click.button == 3 and self.drag:
             self.size = (self.size[1], self.size[0])
-            self.rotate = 1-self.rotate
+            self.rotate = 1 - self.rotate
 
         elif click.button == 1:
             if self.drag:
                 available = True
                 for i in range(self.size[0]):
                     for j in range(self.size[1]):
-                        if GRIDS[self.side][j+self.draw()[1]][i+self.draw()[0]] != self and GRIDS[self.side][j+self.draw()[1]][i+self.draw()[0]] is not None:
+                        if GRIDS[self.side][j + self.draw()[1]][i + self.draw()[0]] != self and \
+                                GRIDS[self.side][j + self.draw()[1]][i + self.draw()[0]] is not None:
                             available = False
                 if available:
                     self.place(self.draw())
@@ -38,26 +41,28 @@ class UNIT:
                 self.pickup()
                 return self
 
-    def draw(self):
-        if self.drag:
-            x, y = mouse.get_pos()
-            x //= 70
-            y //= 70
+    def draw(self, dead=False):
+        if not dead:
+            if self.drag:
+                x, y = mouse.get_pos()
+                x //= 70
+                y //= 70
 
-            if x + self.size[0] > 9:
-                x = 10 - self.size[0]
-            if y + self.size[1] > 9:
-                y = 10 - self.size[1]
+                if x + self.size[0] > 9:
+                    x = 10 - self.size[0]
+                if y + self.size[1] > 9:
+                    y = 10 - self.size[1]
 
-            win.blit(self.img[self.rotate], (x * 70, y * 70))
-            return x, y
-
+                win.blit(self.img[self.rotate], (x * 70, y * 70))
+                return x, y
+            else:
+                win.blit(self.img[self.rotate], (self.coord[0] * 70, self.coord[1] * 70))
         else:
-            win.blit(self.img[self.rotate], (self.coord[0] * 70, self.coord[1] * 70))
+            win.blit(self.deadImage[self.rotate], (self.coord[0] * 70 + 300, self.coord[1] * 70))
 
     def place(self, coord):
         self.coord = coord
-        self.hitbox = self.img[self.rotate].get_rect(topleft=(self.coord[0]*70, self.coord[1]*70))
+        self.hitbox = self.img[self.rotate].get_rect(topleft=(self.coord[0] * 70, self.coord[1] * 70))
         for i in range(self.size[0]):
             for j in range(self.size[1]):
                 GRIDS[self.side][j + self.coord[1]][i + self.coord[0]] = self
@@ -73,10 +78,9 @@ class UNIT:
         self.drag = True
 
     def hit(self):
-        self.health -=1
+        self.health -= 1
         if self.health <= 0:
             self.isDead = True
-            self.image = self.deadImage
 
     def __str__(self):
         return self.name
@@ -87,24 +91,24 @@ class UNIT:
 # Finish Later - War Train - 1x5
 class WT(UNIT):
     def __init__(self, side: int):
-        UNIT.__init__(self, (1, 5), side, 'wt', (14, 3), 'train.png')
+        UNIT.__init__(self, (1, 5), side, 'wt', (14, 3), 'train.png', '')
 
 
 # Platoon - 1x3
 class PT(UNIT):
     def __init__(self, side: int):
-        UNIT.__init__(self, (1, 3), side, 'pt', (13, 0), 'platoon.png')
+        UNIT.__init__(self, (1, 3), side, 'pt', (13, 0), 'platoon.png', 'Ships/Dart_plat.png')
 
 
 class AT(UNIT):
     def __init__(self, side: int):
-        UNIT.__init__(self, (1, 3), side, 'at', (12, 0), 'artillery.png')
+        UNIT.__init__(self, (1, 3), side, 'at', (12, 0), 'artillery.png', 'Ships/Dart_plat.png')
 
 
 # Tank - 2x2
 class TK(UNIT):
     def __init__(self, side: int):
-        UNIT.__init__(self, (2, 2), side, 'tk', (12, 3), 'tank.png')
+        UNIT.__init__(self, (2, 2), side, 'tk', (12, 3), 'tank.png', 'Ships/Dtank.png')
         self.img = [self.img[0], self.img[0]]
 
 
@@ -116,7 +120,7 @@ class Button:
         self.result = result
 
     def draw(self):
-        win.blit(self.img,self.topleft)
+        win.blit(self.img, self.topleft)
 
     def click(self, click):
         if self.hitbox.collidepoint(click.pos):
@@ -124,15 +128,15 @@ class Button:
 
 
 class CROSS:
-    def __init__(self, img:str, offset=0):
+    def __init__(self, img: str, offset=0):
         self.img = image.load(img)
         self.offset = offset
 
     def draw(self):
         x, y = mouse.get_pos()
-        x = (x-15)//70*70 + self.offset
-        y = (y)//70*70
-        win.blit(self.img,(x,y))
+        x = (x - 15) // 70 * 70 + self.offset
+        y = y // 70 * 70
+        win.blit(self.img, (x, y))
         return x, y
 
 
@@ -166,7 +170,7 @@ for player, units in enumerate(ALL_UNITS):
     while True:
 
         win.fill((0, 0, 0))
-        win.blit(BG, (0,0))
+        win.blit(BG, (0, 0))
         for u in units:
             u.draw()
 
@@ -198,21 +202,22 @@ Menu = 0  # 0 - main; 1 = fire; 2 - settings.
 while inGame:
     for player, Units in enumerate(ALL_UNITS):
         inRound = True
+        Menu = 0
+        print(f'player {player+1}')
         while inRound:
-
             if Menu == 0:
-                win.blit(BG, (0,0))
+                win.blit(BG, (0, 0))
                 BAR.draw()
                 CUR.draw()
+                for unit in Units:
+                    unit.draw()
                 for row, items in enumerate(HITGRIDS[player]):
                     for column, item in enumerate(items):
                         if item is not None:
                             if item:
-                                win.blit(aHIT, (70*column, 70*row))
+                                win.blit(HIT, (70 * column, 70 * row))
                             else:
-                                win.blit(aMISS, (70*column, 70*row))
-                for unit in Units:
-                    unit.draw()
+                                win.blit(MISS, (70 * column, 70 * row))
 
                 for Event in event.get():
                     if Event.type == QUIT:
@@ -222,31 +227,35 @@ while inGame:
                             Menu = 1
 
             elif Menu == 1:
-                win.blit(aBG, (0,0))
+                win.blit(aBG, (0, 0))
                 aBAR.draw()
                 AIM.draw()
-                for row, items in enumerate(HITGRIDS[1-player]):
+                for row, items in enumerate(HITGRIDS[1 - player]):
                     for column, item in enumerate(items):
                         if item is not None:
                             if item:
-                                win.blit(aHIT, (70*column + 300, 70*row))
+                                win.blit(aHIT, (70 * column + 300, 70 * row))
                             else:
-                                win.blit(aMISS, (70*column + 300, 70*row))
+                                win.blit(aMISS, (70 * column + 300, 70 * row))
+                for unit in ALL_UNITS[1-player]:
+                    if unit.isDead:
+                        unit.draw(True)
                 for Event in event.get():
                     if Event.type == QUIT:
                         quit()
                     elif Event.type == MOUSEBUTTONUP:
                         if aBAR.click(Event):
                             Menu = 0
-                        elif (Event.pos[0])//70*70 >= 280:
+                        elif (Event.pos[0]) // 70 * 70 >= 280:
                             x, y = Event.pos
-                            x = (x-300)//70
+                            x = (x - 300) // 70
                             y //= 70
-                            if HITGRIDS[1-player][y][x] is None:
-                                if GRIDS[1-player][y][x] is None:
-                                    HITGRIDS[1-player][y][x] = False
+                            if HITGRIDS[1 - player][y][x] is None:
+                                if GRIDS[1 - player][y][x] is None:
+                                    HITGRIDS[1 - player][y][x] = False
                                 else:
                                     HITGRIDS[1 - player][y][x] = True
-                                    GRIDS[1 - player][y][x].hit
-
+                                    GRIDS[1 - player][y][x].hit()
+                            inRound = False
+                            break
             display.update()
