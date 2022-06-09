@@ -15,7 +15,7 @@ class UNIT:
         self.health = size[0] * size[1]
         self.isDead = False
         self.deadImage = image.load(deadImage)
-        self.deadImage = [self.deadImage, transform.rotate(self.deadImage,90)]
+        self.deadImage = [self.deadImage, transform.rotate(self.deadImage, 90)]
 
     def checkClick(self, click):
         # Rotate on right click
@@ -110,13 +110,19 @@ class TK(UNIT):
     def __init__(self, side: int):
         UNIT.__init__(self, (2, 2), side, 'tk', (12, 3), 'tank.png', 'Ships/Dtank.png')
         self.img = [self.img[0], self.img[0]]
+        self.Power = False
+    def power(self):
+        self.Power = True
 
 
 class Button:
-    def __init__(self, topleft: tuple, img, result=True):
-        self.img = image.load(img)
+    def __init__(self, topleft: tuple, img:[str,tuple], result=True):
+        if type(img) == str:
+            self.img = image.load(img)
+            self.hitbox = self.img.get_rect(topleft=topleft)
+        else:
+            self.hitbox = Rect(topleft,img)
         self.topleft = topleft
-        self.hitbox = self.img.get_rect(topleft=topleft)
         self.result = result
 
     def draw(self):
@@ -138,6 +144,17 @@ class CROSS:
         y = y // 70 * 70
         win.blit(self.img, (x, y))
         return x, y
+
+
+def strike(x, y):
+    if HITGRIDS[1 - player][y][x] is None:
+        if GRIDS[1 - player][y][x] is None:
+            HITGRIDS[1 - player][y][x] = False
+        else:
+            HITGRIDS[1 - player][y][x] = True
+            GRIDS[1 - player][y][x].hit()
+            if GRIDS[1-player][y][x].name[:-1] == 'tk':
+                GRIDS[1 - player][y][x].power()
 
 
 # INITIALIZATION
@@ -203,7 +220,6 @@ while inGame:
     for player, Units in enumerate(ALL_UNITS):
         inRound = True
         Menu = 0
-        print(f'player {player+1}')
         while inRound:
             if Menu == 0:
                 win.blit(BG, (0, 0))
@@ -237,7 +253,7 @@ while inGame:
                                 win.blit(aHIT, (70 * column + 300, 70 * row))
                             else:
                                 win.blit(aMISS, (70 * column + 300, 70 * row))
-                for unit in ALL_UNITS[1-player]:
+                for unit in ALL_UNITS[1 - player]:
                     if unit.isDead:
                         unit.draw(True)
                 for Event in event.get():
@@ -251,12 +267,7 @@ while inGame:
                             x, y = Event.pos
                             x = (x - 300) // 70
                             y //= 70
-                            if HITGRIDS[1 - player][y][x] is None:
-                                if GRIDS[1 - player][y][x] is None:
-                                    HITGRIDS[1 - player][y][x] = False
-                                else:
-                                    HITGRIDS[1 - player][y][x] = True
-                                    GRIDS[1 - player][y][x].hit()
+                            strike(x, y)
                             # ----------------------------------------
                             inRound = False
                             break
