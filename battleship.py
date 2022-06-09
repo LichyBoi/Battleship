@@ -111,9 +111,11 @@ class TK(UNIT):
         UNIT.__init__(self, (2, 2), side, 'tk', (12, 3), 'tank.png', 'Ships/Dtank.png')
         self.img = [self.img[0], self.img[0]]
         self.Power = False
-    def power(self):
-        self.Power = True
-
+    def power(self, Power=None):
+        if Power is None:
+            return self.Power
+        else:
+            self.Power = Power
 
 class Button:
     def __init__(self, topleft: tuple, img:[str,tuple], result=True):
@@ -154,7 +156,7 @@ def strike(x, y):
             HITGRIDS[1 - player][y][x] = True
             GRIDS[1 - player][y][x].hit()
             if GRIDS[1-player][y][x].name[:-1] == 'tk':
-                GRIDS[1 - player][y][x].power()
+                GRIDS[1 - player][y][x].power(True)
 
 
 # INITIALIZATION
@@ -298,12 +300,14 @@ while inGame:
                         if aBAR.click(Event):
                             Menu = 0
                         elif (Event.pos[0]) // 70 * 70 >= 280:
-                            # Hit section - might want to make this a function for powerups
                             x, y = Event.pos
                             x = (x - 300) // 70
                             y //= 70
                             strike(x, y)
-                            # ----------------------------------------
-                            inRound = False
+                            if ALL_UNITS[player][2].power():
+                                ALL_UNITS[player][2].power(False)
+                            else:
+                                inRound = False
+
                             break
             display.update()
