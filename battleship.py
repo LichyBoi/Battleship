@@ -111,17 +111,18 @@ class TK(UNIT):
         UNIT.__init__(self, (2, 2), side, 'tk', (12, 3), 'tank.png', 'Ships/Dtank.png')
         self.img = [self.img[0], self.img[0]]
         self.Power = False
+
     def power(self):
         self.Power = True
 
 
 class Button:
-    def __init__(self, topleft: tuple, img:[str,tuple], result=True):
+    def __init__(self, topleft: tuple, img: [str, tuple], result=True):
         if type(img) == str:
             self.img = image.load(img)
             self.hitbox = self.img.get_rect(topleft=topleft)
         else:
-            self.hitbox = Rect(topleft,img)
+            self.hitbox = Rect(topleft, img)
         self.topleft = topleft
         self.result = result
 
@@ -153,7 +154,7 @@ def strike(x, y):
         else:
             HITGRIDS[1 - player][y][x] = True
             GRIDS[1 - player][y][x].hit()
-            if GRIDS[1-player][y][x].name[:-1] == 'tk':
+            if GRIDS[1 - player][y][x].name[:-1] == 'tk':
                 GRIDS[1 - player][y][x].power()
 
 
@@ -181,13 +182,13 @@ BAR = Button((965, 0), 'UI/SLIDE.png')
 aBAR = Button((0, 0), 'UI/SLIDE2.png')
 
 MENU = image.load('UI/MENU.png')
-newG = Button((380,340),(220,90))
-loadG = Button((330,110),(220,75))
-HELP = Button((580,40),(165,145))
+newG = Button((380, 340), (220, 90))
+loadG = Button((330, 110), (220, 75))
+HELP = Button((580, 40), (165, 145))
 # MENU
 inMenu = True
 while inMenu:
-    win.blit(MENU,(0,0))
+    win.blit(MENU, (0, 0))
 
     for Event in event.get():
         if Event.type == QUIT:
@@ -196,24 +197,13 @@ while inMenu:
             if newG.click(Event):
                 inMenu = False
             elif loadG.click(Event):
-                print ("Loaded Game")
+                print("Loaded Game")
             elif HELP.click(Event):
-                print ("Help")
+                print("Help")
             else:
-                print (Event.pos)
+                print(Event.pos)
 
     display.update()
-'''for Event in event.get():
-                if Event.type == QUIT:
-                    quit()
-                elif Event.type == MOUSEBUTTONUP:
-                    if BAR.click(Event):
-                        Menu = 1'''
-'''
-    draw bg
-    loop through buttons:
-        if button: do button
-        '''
 
 # PLACING PHASE
 ALL_UNITS = [[PT(i), AT(i), TK(i)] for i in range(2)]
@@ -276,6 +266,11 @@ while inGame:
                     elif Event.type == MOUSEBUTTONUP:
                         if BAR.click(Event):
                             Menu = 1
+                    elif Event.type == KEYUP:
+                        if Event.key == K_RETURN:
+                            print (GRIDS)
+                            print (HITGRIDS)
+
 
             elif Menu == 1:
                 win.blit(aBG, (0, 0))
