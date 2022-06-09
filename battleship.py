@@ -193,7 +193,7 @@ while inMenu:
         if Event.type == QUIT:
             quit()
         elif Event.type == MOUSEBUTTONUP:
-
+            pass
 
 '''
     draw bg
@@ -290,6 +290,9 @@ while inGame:
                             y //= 70
                             strike(x, y)
                             # ----------------------------------------
-                            inRound = False
+                            if ALL_UNITS[player][2].Power:
+                                ALL_UNITS[player][2].Power = False
+                            else:
+                                inRound = False
                             break
             display.update()
