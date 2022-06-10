@@ -135,6 +135,29 @@ class Button:
             return self.result
 
 
+# PowerUp section
+class BoatBomb(Button):
+    IN_GAME = False
+
+    def __init__(self, side):
+        self.select = False
+        self.side = side
+        self.pos = (800, 0)
+        Button.__init__(self, self.pos, (100,100))
+
+
+    def Select(self, click):
+        if self.click(click):
+            if not BoatBomb.IN_GAME:
+                if self.select:
+                    self.select = False
+                    Button.__init__(self, (900-100*len(POWERS[self.side]),800), (100,100))
+                else:
+                    self.select = True
+                    Button.__init__(self, self.pos, (100, 100))
+
+
+
 class CROSS:
     def __init__(self, img: str, offset=0):
         self.img = image.load(img)
@@ -205,25 +228,14 @@ while inMenu:
                 print (Event.pos)
 
     display.update()
-'''for Event in event.get():
-                if Event.type == QUIT:
-                    quit()
-                elif Event.type == MOUSEBUTTONUP:
-                    if BAR.click(Event):
-                        Menu = 1'''
-'''
-    draw bg
-    loop through buttons:
-        if button: do button
-        '''
 
 # PLACING PHASE
 ALL_UNITS = [[PT(i), AT(i), TK(i)] for i in range(2)]
+ALL_POWERS = [[BoatBomb(i)] for i in range(2)]
+POWERS = [[[],[]] for i in range(2)]
 for player, units in enumerate(ALL_UNITS):
     Dragging = None
     while True:
-
-        win.fill((0, 0, 0))
         win.blit(BG, (0, 0))
         for u in units:
             u.draw()
@@ -238,17 +250,32 @@ for player, units in enumerate(ALL_UNITS):
                         Dragging = u.checkClick(Event)
                         if Dragging is not None:
                             break
-
                 else:
                     Dragging = Dragging.checkClick(Event)
 
-            if Event.type == KEYUP:
+            elif Event.type == KEYUP:
                 if Event.key == K_RETURN:
                     Leave = True
+                    for unit in ALL_UNITS[player]:
+                        Leave = unit.coord[0]<=9
+                        if not Leave:
+                            print('place all units first')
+                            break
                     break
         if Leave:
             break
         display.update()
+    while True:
+        win.blit(BG, (0, 0))
+        for u in units:
+            u.draw()
+        for p in ALL_POWERS[player]:
+            pass
+        for Event in event.get():
+            if Event.type == QUIT:
+                quit()
+            elif Event.type == MOUSEBUTTONUP:
+                pass
 
 # Game Phase
 inGame = True

@@ -35,11 +35,9 @@ War train(killing shot takes 2 tries)
 
 Power Ups:
 Plane 
-Scouting (AOE)
-Bomb (line)
-Supplies (heals 1  block)
+    Scouting (AOE)
+    Bomb (line)
+    Supplies (heals 1  block)
 Boat
-Bomb (AOE)
-Supplies (heal area over time)
-Landmines
-False scout
+    Bomb (AOE)
+    Supplies (heal area over time)
