@@ -186,7 +186,7 @@ class PUP(Button):
                 if self.select:
                     self.select = False
                     PUP.EMPTY_SPOTS[(self.topleft[0] - 900) // (-100)] = True
-                    Button.__init__(self, self.startpos, (100, 100))
+                    self.Move(self.startpos)
                     POWERS[self.side].remove(self)
 
                 elif len(POWERS[self.side]) < 3:
@@ -194,34 +194,52 @@ class PUP(Button):
                     POWERS[self.side].append(self)
                     for spot in range(3):
                         if PUP.EMPTY_SPOTS[spot]:
-                            Button.__init__(self, (900 - 100 * spot, 600), (100, 100))
+                            self.Move((900 - 100 * spot, 600))
                             PUP.EMPTY_SPOTS[spot] = False
                             break
+
+    def Move(self, pos):
+        Button.__init__(self, pos, (100, 100))
 
 
 class Barrage(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 50), "BARRAGE.png", True)
 
+    def __repr__(self):
+        return f'Barrage {self.side}'
+
 
 class SeaCargo(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 150), "SEACARGO.png", False)
+
+    def __repr__(self):
+        return f'SeaCargo {self.side}'
 
 
 class Scout(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 250), "SCOUT.png", True)
 
+    def __repr__(self):
+        return f'Scout {self.side}'
+
 
 class Bomb(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 350), "CARPETBOMB.png", True)
 
+    def __repr__(self):
+        return f'Bomb {self.side}'
+
 
 class Supply(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 450), "AIRCARGO.png", False)
+
+    def __repr__(self):
+        return f'Supply {self.side}'
 
 
 class CROSS:
@@ -355,6 +373,19 @@ for player, units in enumerate(ALL_UNITS):
         display.update()
         if Leave:
             break
+    aList = []
+    dList = []
+    for p in POWERS[player]:
+        if p.agro:
+            aList.append(p)
+            p.Move((150, 550-(150*len(aList))))
+        else:
+            dList.append(p)
+            p.Move((850, 550-(150*len(dList))))
+    POWERS[player] = [aList, dList]
+
+print(POWERS)
+
 
 # Game Phase
 inGame = True
@@ -367,7 +398,10 @@ while inGame:
             if Menu == 0:
                 win.blit(BG, (0, 0))
                 BAR.draw()
+                for p in POWERS[player][1]:
+                    p.draw()
                 CUR.draw()
+
                 for unit in Units:
                     unit.draw()
                 for row, items in enumerate(HITGRIDS[player]):
@@ -388,6 +422,8 @@ while inGame:
             elif Menu == 1:
                 win.blit(aBG, (0, 0))
                 aBAR.draw()
+                for p in POWERS[player][0]:
+                    p.draw()
                 AIM.draw()
                 for row, items in enumerate(HITGRIDS[1 - player]):
                     for column, item in enumerate(items):

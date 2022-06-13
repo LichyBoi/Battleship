@@ -20,7 +20,7 @@ On a technical level, the game can be made as simple or as complicated as time a
 This limit of the game is only time and creativity.
 
 
-Note: all details are subject to changes and balance patches.
+Note: all details are subject to change and balance patches.
 
 
 2:
