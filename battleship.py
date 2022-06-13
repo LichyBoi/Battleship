@@ -206,6 +206,13 @@ class Barrage(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 50), "BARRAGE.png", True)
 
+    def Select(self, click):
+        if self.click(click) and PUP.IN_GAME:
+            print('selected')
+            print(self.__repr__())
+        else:
+            PUP.Select(self, click)
+
     def __repr__(self):
         return f'Barrage {self.side}'
 
@@ -243,16 +250,21 @@ class Supply(PUP):
 
 
 class CROSS:
-    def __init__(self, img: str, offset=0):
+    def __init__(self, img: str, offset=0, OFFSET=(0, 0)):
         self.img = image.load(img)
         self.offset = offset
 
     def draw(self):
         x, y = mouse.get_pos()
-        x = (x - 15) // 70 * 70 + self.offset
-        y = y // 70 * 70
+        x = (x + self.OFFSET[0] - 15) // 70 * 70 + self.offset
+        y = y+self.OFFSET[1] // 70 * 70
         win.blit(self.img, (x, y))
         return x, y
+
+
+class BIGCROSS():
+    def __init__(self):
+        self.CROSSES = [CROSS()]
 
 
 def strike(x, y):
@@ -378,17 +390,16 @@ for player, units in enumerate(ALL_UNITS):
     for p in POWERS[player]:
         if p.agro:
             aList.append(p)
-            p.Move((150, 550-(150*len(aList))))
+            p.Move((150, 700-(150*len(aList))))
         else:
             dList.append(p)
             p.Move((850, 550-(150*len(dList))))
     POWERS[player] = [aList, dList]
 
-print(POWERS)
-
 
 # Game Phase
 inGame = True
+PUP.IN_GAME = True
 Menu = 0  # 0 - main; 1 = fire; 2 - settings.
 while inGame:
     for player, Units in enumerate(ALL_UNITS):
@@ -450,6 +461,8 @@ while inGame:
                                 ALL_UNITS[player][2].power(False)
                             else:
                                 inRound = False
-
                             break
+                        else:
+                            for p in POWERS[player][0]:
+                                p.Select(Event)
             display.update()
