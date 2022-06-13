@@ -14,8 +14,9 @@ class UNIT:
         self.drag = False
         self.health = size[0] * size[1]
         self.isDead = False
-        self.deadImage = image.load(deadImage)
-        self.deadImage = [self.deadImage, transform.rotate(self.deadImage, 90)]
+        if deadImage != '':
+            self.deadImage = image.load('Ships/' + deadImage)
+            self.deadImage = [self.deadImage, transform.rotate(self.deadImage, 90)]
 
     def checkClick(self, click):
         # Rotate on right click
@@ -88,32 +89,62 @@ class UNIT:
     __repr__ = __str__
 
 
-# Finish Later - War Train - 1x5
-class WT(UNIT):
+# Paratrooper - 1x2 - Draw Outline
+class PA(UNIT):
     def __init__(self, side: int):
-        UNIT.__init__(self, (1, 5), side, 'wt', (14, 3), 'train.png', '')
+        UNIT.__init__(self, (1, 2), side, 'pt', (12, 5), 'PARA.png', '')
+        self.dragImage = image.load('Ships/dragPara.png')
+        self.dragImage = [self.dragImage, transform.rotate(self.dragImage, 90)]
+
+    # Copied from UNIT for drag purpose
+    def draw(self, dead=False):
+        if self.drag:
+            x, y = mouse.get_pos()
+            x //= 70
+            y //= 70
+
+            if x + self.size[0] > 9:
+                x = 10 - self.size[0]
+            if y + self.size[1] > 9:
+                y = 10 - self.size[1]
+
+            win.blit(self.dragImage[self.rotate], (x * 70, y * 70))
+            return x, y
+
+        else:
+            return UNIT.draw(self, dead)
 
 
 # Platoon - 1x3
 class PT(UNIT):
     def __init__(self, side: int):
-        UNIT.__init__(self, (1, 3), side, 'pt', (13, 0), 'platoon.png', 'Ships/Dart_plat.png')
+        UNIT.__init__(self, (1, 3), side, 'pt', (13, 0), 'platoon.png', 'Dart_plat.png')
 
 
+# Artillery - 1x3
 class AT(UNIT):
     def __init__(self, side: int):
-        UNIT.__init__(self, (1, 3), side, 'at', (12, 0), 'artillery.png', 'Ships/Dart_plat.png')
+        UNIT.__init__(self, (1, 3), side, 'at', (12, 0), 'artillery.png', 'Dart_plat.png')
 
 
 # Tank - 2x2
 class TK(UNIT):
     def __init__(self, side: int):
-        UNIT.__init__(self, (2, 2), side, 'tk', (12, 3), 'tank.png', 'Ships/Dtank.png')
+        UNIT.__init__(self, (2, 2), side, 'tk', (12, 3), 'tank.png', 'Dtank.png')
         self.img = [self.img[0], self.img[0]]
         self.Power = False
 
-    def power(self):
-        self.Power = True
+    def power(self, Power=None):
+        if Power is None:
+            return self.Power
+        else:
+            self.Power = Power
+
+
+# Finish Later - War Train - 1x5
+class WT(UNIT):
+    def __init__(self, side: int):
+        UNIT.__init__(self, (1, 5), side, 'wt', (13, 5), 'WARTRAIN.png', '')
 
 
 class Button:
@@ -132,6 +163,83 @@ class Button:
     def click(self, click):
         if self.hitbox.collidepoint(click.pos):
             return self.result
+
+
+# PowerUp section
+class PUP(Button):
+    IN_GAME = False
+    EMPTY_SPOTS = [True, True, True]
+
+    def __init__(self, side: int, pos: tuple, img: str, agro: bool):
+        self.select = False
+        self.side = side
+        Button.__init__(self, pos, "PUPS/" + img)
+        self.gimg = image.load("PUPS/g" + img)
+        self.ready = True
+        self.agro = agro
+        self.startpos = pos
+
+    def Select(self, click):
+        if self.click(click):
+            if not PUP.IN_GAME:
+
+                if self.select:
+                    self.select = False
+                    PUP.EMPTY_SPOTS[(self.topleft[0] - 900) // (-100)] = True
+                    self.Move(self.startpos)
+                    POWERS[self.side].remove(self)
+
+                elif len(POWERS[self.side]) < 3:
+                    self.select = True
+                    POWERS[self.side].append(self)
+                    for spot in range(3):
+                        if PUP.EMPTY_SPOTS[spot]:
+                            self.Move((900 - 100 * spot, 600))
+                            PUP.EMPTY_SPOTS[spot] = False
+                            break
+
+    def Move(self, pos):
+        Button.__init__(self, pos, (100, 100))
+
+
+class Barrage(PUP):
+    def __init__(self, side):
+        PUP.__init__(self, side, (850, 50), "BARRAGE.png", True)
+
+    def __repr__(self):
+        return f'Barrage {self.side}'
+
+
+class SeaCargo(PUP):
+    def __init__(self, side):
+        PUP.__init__(self, side, (850, 150), "SEACARGO.png", False)
+
+    def __repr__(self):
+        return f'SeaCargo {self.side}'
+
+
+class Scout(PUP):
+    def __init__(self, side):
+        PUP.__init__(self, side, (850, 250), "SCOUT.png", True)
+
+    def __repr__(self):
+        return f'Scout {self.side}'
+
+
+class Bomb(PUP):
+    def __init__(self, side):
+        PUP.__init__(self, side, (850, 350), "CARPETBOMB.png", True)
+
+    def __repr__(self):
+        return f'Bomb {self.side}'
+
+
+class Supply(PUP):
+    def __init__(self, side):
+        PUP.__init__(self, side, (850, 450), "AIRCARGO.png", False)
+
+    def __repr__(self):
+        return f'Supply {self.side}'
 
 
 class CROSS:
@@ -155,7 +263,7 @@ def strike(x, y):
             HITGRIDS[1 - player][y][x] = True
             GRIDS[1 - player][y][x].hit()
             if GRIDS[1 - player][y][x].name[:-1] == 'tk':
-                GRIDS[1 - player][y][x].power()
+                GRIDS[1 - player][y][x].power(True)
 
 
 # INITIALIZATION
@@ -206,16 +314,15 @@ while inMenu:
     display.update()
 
 # PLACING PHASE
-ALL_UNITS = [[PT(i), AT(i), TK(i)] for i in range(2)]
+ALL_UNITS = [[PT(i), AT(i), TK(i), PA(i), WT(i)] for i in range(2)]
+ALL_POWERS = [[Barrage(i), SeaCargo(i), Scout(i), Bomb(i), Supply(i)] for i in range(2)]
+POWERS = [[], []]
 for player, units in enumerate(ALL_UNITS):
     Dragging = None
     while True:
-
-        win.fill((0, 0, 0))
         win.blit(BG, (0, 0))
         for u in units:
             u.draw()
-
         Leave = False
         for Event in event.get():
             if Event.type == QUIT:
@@ -226,17 +333,59 @@ for player, units in enumerate(ALL_UNITS):
                         Dragging = u.checkClick(Event)
                         if Dragging is not None:
                             break
-
                 else:
                     Dragging = Dragging.checkClick(Event)
 
-            if Event.type == KEYUP:
+            elif Event.type == KEYUP:
                 if Event.key == K_RETURN:
                     Leave = True
+                    for unit in ALL_UNITS[player]:
+                        Leave = unit.coord[0] <= 9
+                        if not Leave:
+                            print('place all units first')
+                            break
                     break
         if Leave:
             break
         display.update()
+
+    # Power Selection mini-phase
+    Leave = False
+    while True:
+        win.blit(BG, (0, 0))
+        for u in units:
+            u.draw()
+        for p in ALL_POWERS[player]:
+            p.draw()
+        for Event in event.get():
+            if Event.type == QUIT:
+                quit()
+            elif Event.type == MOUSEBUTTONUP:
+                for p in ALL_POWERS[player]:
+                    p.Select(Event)
+            elif Event.type == KEYUP and Event.key == K_RETURN:
+                if len(POWERS[player]) == 3:
+                    PUP.EMPTY_SPOTS = [True,True,True]
+                    Leave = True
+                    break
+                else:
+                    print('Select three powers first')
+        display.update()
+        if Leave:
+            break
+    aList = []
+    dList = []
+    for p in POWERS[player]:
+        if p.agro:
+            aList.append(p)
+            p.Move((150, 550-(150*len(aList))))
+        else:
+            dList.append(p)
+            p.Move((850, 550-(150*len(dList))))
+    POWERS[player] = [aList, dList]
+
+print(POWERS)
+
 
 # Game Phase
 inGame = True
@@ -249,7 +398,10 @@ while inGame:
             if Menu == 0:
                 win.blit(BG, (0, 0))
                 BAR.draw()
+                for p in POWERS[player][1]:
+                    p.draw()
                 CUR.draw()
+
                 for unit in Units:
                     unit.draw()
                 for row, items in enumerate(HITGRIDS[player]):
@@ -266,15 +418,12 @@ while inGame:
                     elif Event.type == MOUSEBUTTONUP:
                         if BAR.click(Event):
                             Menu = 1
-                    elif Event.type == KEYUP:
-                        if Event.key == K_RETURN:
-                            print (GRIDS)
-                            print (HITGRIDS)
-
 
             elif Menu == 1:
                 win.blit(aBG, (0, 0))
                 aBAR.draw()
+                for p in POWERS[player][0]:
+                    p.draw()
                 AIM.draw()
                 for row, items in enumerate(HITGRIDS[1 - player]):
                     for column, item in enumerate(items):
@@ -293,12 +442,14 @@ while inGame:
                         if aBAR.click(Event):
                             Menu = 0
                         elif (Event.pos[0]) // 70 * 70 >= 280:
-                            # Hit section - might want to make this a function for powerups
                             x, y = Event.pos
                             x = (x - 300) // 70
                             y //= 70
                             strike(x, y)
-                            # ----------------------------------------
-                            inRound = False
+                            if ALL_UNITS[player][2].power():
+                                ALL_UNITS[player][2].power(False)
+                            else:
+                                inRound = False
+
                             break
             display.update()
