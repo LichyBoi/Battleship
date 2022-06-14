@@ -176,6 +176,7 @@ class PUP(Button):
         Button.__init__(self, pos, "PUPS/" + img)
         self.gimg = image.load("PUPS/g" + img)
         self.ready = True
+        self.inUse = False
         self.agro = agro
         self.startpos = pos
 
@@ -205,13 +206,19 @@ class PUP(Button):
 class Barrage(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 50), "BARRAGE.png", True)
+        self.cursor = BIGCROSS()
 
     def Select(self, click):
         if self.click(click) and PUP.IN_GAME:
-            print('selected')
-            print(self.__repr__())
+            self.inUse = True
         else:
             PUP.Select(self, click)
+
+    def draw(self):
+        if self.inUse:
+            win.blit(self.img, (self.topleft[0]+20, self.topleft[1]))
+        else:
+            Button.draw(self)
 
     def __repr__(self):
         return f'Barrage {self.side}'
@@ -253,6 +260,7 @@ class CROSS:
     def __init__(self, img: str, offset=0, OFFSET=(0, 0)):
         self.img = image.load(img)
         self.offset = offset
+        self.OFFSET = OFFSET
 
     def draw(self):
         x, y = mouse.get_pos()
@@ -262,9 +270,20 @@ class CROSS:
         return x, y
 
 
-class BIGCROSS():
+class BIGCROSS:
     def __init__(self):
-        self.CROSSES = [CROSS()]
+        self.CROSSES = [[CROSS('UI/CROSSHAIR.png', 0, (i,j)) for i in range(-1,2)] for j in range(-1,2)]
+
+    def draw(self):
+        for my, crosses in enumerate(self.CROSSES):
+            for mx, cross in enumerate(crosses):
+                if my < 10 and mx < 10:
+                    cross.draw()
+
+    def strike(self):
+        for y in range(len(self.CROSSES)):
+            for x in range(len(self.CROSSES[y])):
+                strike(x, y)
 
 
 def strike(x, y):
@@ -291,6 +310,7 @@ aBG = image.load('UI/AG.png')
 
 AIM = CROSS('UI/CROSSHAIR.png', 20)
 CUR = CROSS('UI/CURSOR.png')
+bAIM = BIGCROSS()
 
 HIT = image.load('UI/FIRE.png')
 aHIT = image.load('UI/AHIT.png')
@@ -411,7 +431,13 @@ while inGame:
                 BAR.draw()
                 for p in POWERS[player][1]:
                     p.draw()
-                CUR.draw()
+
+                for p in POWERS[player][1]:
+                    if p.inUse:
+                        p.cursor.draw()
+                        break
+                else:
+                    CUR.draw()
 
                 for unit in Units:
                     unit.draw()
@@ -429,13 +455,20 @@ while inGame:
                     elif Event.type == MOUSEBUTTONUP:
                         if BAR.click(Event):
                             Menu = 1
+                        for p in POWERS[player][0]:
+                            p.Select(Event)
 
             elif Menu == 1:
                 win.blit(aBG, (0, 0))
                 aBAR.draw()
                 for p in POWERS[player][0]:
                     p.draw()
-                AIM.draw()
+                for p in POWERS[player][0]:
+                    if p.inUse:
+                        p.cursor.draw()
+                        break
+                else:
+                    AIM.draw()
                 for row, items in enumerate(HITGRIDS[1 - player]):
                     for column, item in enumerate(items):
                         if item is not None:
@@ -450,6 +483,8 @@ while inGame:
                     if Event.type == QUIT:
                         quit()
                     elif Event.type == MOUSEBUTTONUP:
+                        for p in POWERS[player][0]:
+                            p.Select(Event)
                         if aBAR.click(Event):
                             Menu = 0
                         elif (Event.pos[0]) // 70 * 70 >= 280:
