@@ -310,7 +310,6 @@ win = display.set_mode((1000, 700))
 # creates two grids, 10 by 10, completely filled with None.
 GRIDS = [[[None for i in range(10)] for j in range(10)] for k in range(2)]
 HITGRIDS = [[[None for i in range(10)] for j in range(10)] for k in range(2)]
-text = font.Font('INVASION2000.TTF', 20)
 
 BG = image.load('UI/BG.png')
 aBG = image.load('UI/AG.png')
