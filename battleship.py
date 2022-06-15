@@ -92,7 +92,7 @@ class UNIT:
 # Paratrooper - 1x2 - Draw Outline
 class PA(UNIT):
     def __init__(self, side: int):
-        UNIT.__init__(self, (1, 2), side, 'pa', (12, 5), 'PARA.png', 'Dpara.png')
+        UNIT.__init__(self, (1, 2), side, 'pt', (12, 5), 'PARA.png', '')
         self.dragImage = image.load('Ships/dragPara.png')
         self.dragImage = [self.dragImage, transform.rotate(self.dragImage, 90)]
 
@@ -144,7 +144,7 @@ class TK(UNIT):
 # Finish Later - War Train - 1x5
 class WT(UNIT):
     def __init__(self, side: int):
-        UNIT.__init__(self, (1, 5), side, 'wt', (13, 5), 'WARTRAIN.png', 'Dtrain.png')
+        UNIT.__init__(self, (1, 5), side, 'wt', (13, 5), 'WARTRAIN.png', '')
 
 
 class Button:
@@ -176,6 +176,7 @@ class PUP(Button):
         Button.__init__(self, pos, "PUPS/" + img)
         self.gimg = image.load("PUPS/g" + img)
         self.ready = True
+        self.inUse = False
         self.agro = agro
         self.startpos = pos
 
@@ -205,6 +206,19 @@ class PUP(Button):
 class Barrage(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 50), "BARRAGE.png", True)
+        self.cursor = BIGCROSS()
+
+    def Select(self, click):
+        if self.click(click) and PUP.IN_GAME:
+            self.inUse = True
+        else:
+            PUP.Select(self, click)
+
+    def draw(self):
+        if self.inUse:
+            win.blit(self.img, (self.topleft[0]+20, self.topleft[1]))
+        else:
+            Button.draw(self)
 
     def __repr__(self):
         return f'Barrage {self.side}'
@@ -243,16 +257,40 @@ class Supply(PUP):
 
 
 class CROSS:
-    def __init__(self, img: str, offset=0):
+    def __init__(self, img: str, offset=0, OFFSET=(0, 0), Attack=False):
         self.img = image.load(img)
         self.offset = offset
+        self.OFFSET = OFFSET
+        self.Offset = 0
+        if Attack:
+            self.Offset += 300
 
     def draw(self):
         x, y = mouse.get_pos()
-        x = (x - 15) // 70 * 70 + self.offset
-        y = y // 70 * 70
-        win.blit(self.img, (x, y))
+        x = (x + self.OFFSET[0]) // 70 * 70 + self.offset
+        y = (y+self.OFFSET[1]) // 70 * 70
+        if -1 <= (x-self.offset - self.Offset)/70 < 10 and -1 <= (y-self.offset)/70 < 10:
+            win.blit(self.img, (x, y))
         return x, y
+
+
+class BIGCROSS:
+    def __init__(self):
+        self.CROSSES = [[CROSS('UI/CROSSHAIR.png', 20, (i, j), True) for i in range(3)] for j in range(-1, 2)]
+
+    def draw(self):
+
+        for crosses in self.CROSSES:
+            for cross in crosses:
+                cross.draw()
+
+    def strike(self):
+        X, Y = mouse.get_pos()
+        for crosses in self.CROSSES:
+            for cross in crosses:
+                _X = (X-cross.offset-cross.Offset)//70 + cross.OFFSET[0]
+                _Y = Y//70 + cross.OFFSET[1]
+                strike(_X, _Y)
 
 
 def strike(x, y):
@@ -266,7 +304,6 @@ def strike(x, y):
                 GRIDS[1 - player][y][x].power(True)
 
 
-
 # INITIALIZATION
 init()
 win = display.set_mode((1000, 700))
@@ -277,14 +314,10 @@ text = font.Font('INVASION2000.TTF', 20)
 
 BG = image.load('UI/BG.png')
 aBG = image.load('UI/AG.png')
-PAUSE = image.load('UI/PAUSE.png')
-SPLIT = image.load('UI/SPLIT.png')
 
-pBTN = Button((910, 0), 'UI/pauseBTN.png')
-RANDOM = Button ((0,0),'UI/AHIT.png')
-
-AIM = CROSS('UI/CROSSHAIR.png', 20)
+AIM = CROSS('UI/CROSSHAIR.png', 20, Attack=True)
 CUR = CROSS('UI/CURSOR.png')
+bAIM = BIGCROSS()
 
 HIT = image.load('UI/FIRE.png')
 aHIT = image.load('UI/AHIT.png')
@@ -299,16 +332,6 @@ MENU = image.load('UI/MENU.png')
 newG = Button((380, 340), (220, 90))
 loadG = Button((330, 110), (220, 75))
 HELP = Button((580, 40), (165, 145))
-
-Help1 = image.load('UI/HELP.png')
-Help2 = image.load('UI/HELP (1).png')
-Help3 = image.load('UI/HELP (2).png')
-Help4 = image.load('UI/HELP (3).png')
-Help5 = image.load('UI/HELP (4).png')
-Help = [Help1,Help2,Help3,Help4,Help5]
-
-ResumeG = Button((200,160),(615,60))
-Forfit = Button((330,440),(365,65))
 # MENU
 inMenu = True
 while inMenu:
@@ -320,27 +343,14 @@ while inMenu:
         elif Event.type == MOUSEBUTTONUP:
             if newG.click(Event):
                 inMenu = False
+            elif loadG.click(Event):
+                print("Loaded Game")
             elif HELP.click(Event):
-                inHelp = True
-                helpSlide = 0
-                while inHelp:
-                    if helpSlide == 5:
-                        inMenu = True
-                        inHelp = False
-                    else:
-                        win.blit(Help[helpSlide], (0, 0))
-                        for Event in event.get():
-                            if Event.type == QUIT:
-                                quit()
-                            elif Event.type == KEYUP:
-                                if Event.key == K_RETURN:
-                                    helpSlide += 1
-                    display.update()
+                print("Help")
             else:
                 print(Event.pos)
 
     display.update()
-
 
 # PLACING PHASE
 ALL_UNITS = [[PT(i), AT(i), TK(i), PA(i), WT(i)] for i in range(2)]
@@ -394,7 +404,7 @@ for player, units in enumerate(ALL_UNITS):
                     p.Select(Event)
             elif Event.type == KEYUP and Event.key == K_RETURN:
                 if len(POWERS[player]) == 3:
-                    PUP.EMPTY_SPOTS = [True, True, True]
+                    PUP.EMPTY_SPOTS = [True,True,True]
                     Leave = True
                     break
                 else:
@@ -407,30 +417,34 @@ for player, units in enumerate(ALL_UNITS):
     for p in POWERS[player]:
         if p.agro:
             aList.append(p)
-            p.Move((150, 550 - (150 * len(aList))))
+            p.Move((150, 700-(150*len(aList))))
         else:
             dList.append(p)
-            p.Move((850, 550 - (150 * len(dList))))
+            p.Move((850, 550-(150*len(dList))))
     POWERS[player] = [aList, dList]
 
-print(POWERS)
 
 # Game Phase
 inGame = True
+PUP.IN_GAME = True
 Menu = 0  # 0 - main; 1 = fire; 2 - settings.
 while inGame:
     for player, Units in enumerate(ALL_UNITS):
         inRound = True
         Menu = 0
-        Paused = False
         while inRound:
             if Menu == 0:
                 win.blit(BG, (0, 0))
                 BAR.draw()
-                pBTN.draw()
                 for p in POWERS[player][1]:
                     p.draw()
-                CUR.draw()
+
+                for p in POWERS[player][1]:
+                    if p.inUse:
+                        p.cursor.draw()
+                        break
+                else:
+                    CUR.draw()
 
                 for unit in Units:
                     unit.draw()
@@ -442,32 +456,26 @@ while inGame:
                             else:
                                 win.blit(MISS, (70 * column, 70 * row))
 
-                if Paused:
-                    win.blit(PAUSE, (0, 0))
-                    for Event in event.get():
-                        if Event.type == QUIT:
-                            quit()
-                        elif Event.type == MOUSEBUTTONUP:
-                            if ResumeG.click(Event):
-                                Paused = False
-                            elif Forfit.click(Event):
-                                quit()  # Change
-
                 for Event in event.get():
                     if Event.type == QUIT:
                         quit()
                     elif Event.type == MOUSEBUTTONUP:
                         if BAR.click(Event):
                             Menu = 1
-                        elif pBTN.click(Event):
-                            Paused = True
+                        for p in POWERS[player][0]:
+                            p.Select(Event)
 
             elif Menu == 1:
                 win.blit(aBG, (0, 0))
                 aBAR.draw()
                 for p in POWERS[player][0]:
                     p.draw()
-                AIM.draw()
+                for p in POWERS[player][0]:
+                    if p.inUse:
+                        p.cursor.draw()
+                        break
+                else:
+                    AIM.draw()
                 for row, items in enumerate(HITGRIDS[1 - player]):
                     for column, item in enumerate(items):
                         if item is not None:
@@ -482,32 +490,27 @@ while inGame:
                     if Event.type == QUIT:
                         quit()
                     elif Event.type == MOUSEBUTTONUP:
+                        for p in POWERS[player][0]:
+                            p.Select(Event)
                         if aBAR.click(Event):
                             Menu = 0
                         elif (Event.pos[0]) // 70 * 70 >= 280:
-                            x, y = Event.pos
-                            x = (x - 300) // 70
-                            y //= 70
-                            strike(x, y)
-                            if ALL_UNITS[player][2].power():
-                                ALL_UNITS[player][2].power(False)
+                            for p in POWERS[player][0]:
+                                if p.inUse:
+                                    p.cursor.strike()
+                                    p.inUse = False
+                                    break
                             else:
-                                inRound = False
-
-                            break
+                                x, y = Event.pos
+                                x = (x - 300) // 70
+                                y //= 70
+                                strike(x, y)
+                                if ALL_UNITS[player][2].power():
+                                    ALL_UNITS[player][2].power(False)
+                                else:
+                                    inRound = False
+                                break
+                        else:
+                            for p in POWERS[player][0]:
+                                p.Select(Event)
             display.update()
-        Between = True
-        while Between:
-            win.blit(SPLIT, (0, 0))
-            for Event in event.get():
-                if Event.type == QUIT:
-                    quit()
-                if Event.type == KEYUP:
-                    if Event.key == K_RETURN:
-                        inRound = True
-                        Between = False
-                        break
-
-            display.update()
-
-
