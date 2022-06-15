@@ -92,7 +92,7 @@ class UNIT:
 # Paratrooper - 1x2 - Draw Outline
 class PA(UNIT):
     def __init__(self, side: int):
-        UNIT.__init__(self, (1, 2), side, 'pa', (12, 5), 'PARA.png', '')
+        UNIT.__init__(self, (1, 2), side, 'pa', (12, 5), 'PARA.png', 'Dpara.png')
         self.dragImage = image.load('Ships/dragPara.png')
         self.dragImage = [self.dragImage, transform.rotate(self.dragImage, 90)]
 
@@ -144,7 +144,7 @@ class TK(UNIT):
 # Finish Later - War Train - 1x5
 class WT(UNIT):
     def __init__(self, side: int):
-        UNIT.__init__(self, (1, 5), side, 'wt', (13, 5), 'WARTRAIN.png', '')
+        UNIT.__init__(self, (1, 5), side, 'wt', (13, 5), 'WARTRAIN.png', 'Dtrain.png')
 
 
 class Button:
@@ -280,7 +280,7 @@ aBG = image.load('UI/AG.png')
 PAUSE = image.load('UI/PAUSE.png')
 SPLIT = image.load('UI/SPLIT.png')
 
-pBTN = Button((910, 0), 'UI/AHIT.png')  # Change later
+pBTN = Button((910, 0), 'UI/pauseBTN.png')
 
 AIM = CROSS('UI/CROSSHAIR.png', 20)
 CUR = CROSS('UI/CURSOR.png')
@@ -307,7 +307,6 @@ Help5 = image.load('UI/HELP (4).png')
 Help = [Help1,Help2,Help3,Help4,Help5]
 
 ResumeG = Button((200,160),(615,60))
-SaveG = Button((260,280),(490,66))
 Forfit = Button((330,440),(365,65))
 # MENU
 inMenu = True
@@ -320,8 +319,6 @@ while inMenu:
         elif Event.type == MOUSEBUTTONUP:
             if newG.click(Event):
                 inMenu = False
-            elif loadG.click(Event):
-                print("Loaded Game")
             elif HELP.click(Event):
                 inHelp = True
                 helpSlide = 0
@@ -342,7 +339,6 @@ while inMenu:
                 print(Event.pos)
 
     display.update()
-
 
 
 # PLACING PHASE
@@ -453,14 +449,8 @@ while inGame:
                         elif Event.type == MOUSEBUTTONUP:
                             if ResumeG.click(Event):
                                 Paused = False
-                            elif SaveG.click(Event):
-                                print("Game Saved")  # Change
-                                #save(GRIDS,HITGRIDS)
-                                #quit()
                             elif Forfit.click(Event):
                                 quit()  # Change
-                            else:
-                                print(Event.pos)
 
                 for Event in event.get():
                     if Event.type == QUIT:
@@ -470,9 +460,6 @@ while inGame:
                             Menu = 1
                         elif pBTN.click(Event):
                             Paused = True
-
-
-
 
             elif Menu == 1:
                 win.blit(aBG, (0, 0))
