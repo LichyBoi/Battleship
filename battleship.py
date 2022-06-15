@@ -281,6 +281,7 @@ PAUSE = image.load('UI/PAUSE.png')
 SPLIT = image.load('UI/SPLIT.png')
 
 pBTN = Button((910, 0), 'UI/pauseBTN.png')
+RANDOM = Button ((0,0),'UI/AHIT.png')
 
 AIM = CROSS('UI/CROSSHAIR.png', 20)
 CUR = CROSS('UI/CURSOR.png')
