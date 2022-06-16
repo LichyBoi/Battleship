@@ -219,7 +219,7 @@ class Barrage(PUP):
         self.cursor = BIGCROSS()
 
     def Select(self, click):
-        if self.click(click) and PUP.IN_GAME:
+        if self.click(click) and PUP.IN_GAME and self.ready:
             self.inUse = True
         else:
             PUP.Select(self, click)
@@ -550,6 +550,7 @@ while inGame:
                                 if p.inUse:
                                     p.cursor.strike()
                                     p.inUse = False
+                                    p.ready = False
                                     break
                             else:
                                 x, y = Event.pos
