@@ -1,4 +1,5 @@
 from pygame import *
+import random
 
 
 class UNIT:
@@ -27,7 +28,7 @@ class UNIT:
         elif click.button == 1:
             if self.drag:
 
-                if self.place():
+                if self.place(False):
                     return None
                 else:
                     return self
@@ -55,9 +56,17 @@ class UNIT:
         else:
             win.blit(self.deadImage[self.rotate], (self.coord[0] * 70 + 300, self.coord[1] * 70))
 
-    def place(self, random=False):
-        if random:
-            pass # ADD RANDOM COORDINATE GENERATION HERE
+
+    def place(self, Random):
+        if Random:
+            isRotated = random.randint(0, 1)
+            print(isRotated)
+            if isRotated == 1:
+                self.size = (self.size[1], self.size[0])
+                self.rotate = 1 - self.rotate
+
+            self.coord = (random.randint(0, 10 - self.size[0]), random.randint(0, random.randint(0, 10 - self.size[1])))
+
         else:
             self.coord = self.draw() # Get temporary coordinates from draw()
 
@@ -77,6 +86,8 @@ class UNIT:
                     GRIDS[self.side][j + self.coord[1]][i + self.coord[0]] = self
             self.drag = False        # Set dragging status to false.
             return True              # If the place is successfully placed, return True.
+        if not available:
+            self.place(True)
         # ADD RECURSION LOOP HERE
 
     def pickup(self):
@@ -329,6 +340,7 @@ PAUSE = image.load('UI/PAUSE.png')
 SPLIT = image.load('UI/SPLIT.png')
 
 pBTN = Button((910, 0), 'UI/pauseBTN.png')
+RANDOM = Button((770,630),'UI/RANDOM.png')
 
 AIM = CROSS('UI/CROSSHAIR.png', 20, Attack=True)
 CUR = CROSS('UI/CURSOR.png')
@@ -396,6 +408,7 @@ for player, units in enumerate(ALL_UNITS):
     Dragging = None
     while True:
         win.blit(BG, (0, 0))
+        RANDOM.draw()
         for u in units:
             u.draw()
         Leave = False
@@ -403,7 +416,13 @@ for player, units in enumerate(ALL_UNITS):
             if Event.type == QUIT:
                 quit()
             if Event.type == MOUSEBUTTONUP:
-                if Dragging is None:
+                if RANDOM.click(Event):
+                    for r in range(10):
+                        for c in range (10):
+                            GRIDS[player][r][c] = None
+                    for u in units:
+                        u.place(True)
+                elif Dragging is None:
                     for u in units:
                         Dragging = u.checkClick(Event)
                         if Dragging is not None:
@@ -459,6 +478,19 @@ for player, units in enumerate(ALL_UNITS):
             p.Move((850, 550-(150*len(dList))))
     POWERS[player] = [aList, dList]
 
+Between = True
+while Between:
+    win.blit(SPLIT, (0, 0))
+    for Event in event.get():
+        if Event.type == QUIT:
+            quit()
+        if Event.type == KEYUP:
+            if Event.key == K_RETURN:
+                inRound = True
+                Between = False
+                break
+
+    display.update()
 
 # Game Phase
 inGame = True
