@@ -26,14 +26,8 @@ class UNIT:
 
         elif click.button == 1:
             if self.drag:
-                available = True
-                for i in range(self.size[0]):
-                    for j in range(self.size[1]):
-                        if GRIDS[self.side][j + self.draw()[1]][i + self.draw()[0]] != self and \
-                                GRIDS[self.side][j + self.draw()[1]][i + self.draw()[0]] is not None:
-                            available = False
-                if available:
-                    self.place(self.draw())
+
+                if self.place():
                     return None
                 else:
                     return self
@@ -61,13 +55,29 @@ class UNIT:
         else:
             win.blit(self.deadImage[self.rotate], (self.coord[0] * 70 + 300, self.coord[1] * 70))
 
-    def place(self, coord):
-        self.coord = coord
-        self.hitbox = self.img[self.rotate].get_rect(topleft=(self.coord[0] * 70, self.coord[1] * 70))
+    def place(self, random=False):
+        if random:
+            pass # ADD RANDOM COORDINATE GENERATION HERE
+        else:
+            self.coord = self.draw() # Get temporary coordinates from draw()
+
+        # Start with True, then check every occupying square of unit for other units. Return false if occupied.
+        available = True
         for i in range(self.size[0]):
             for j in range(self.size[1]):
-                GRIDS[self.side][j + self.coord[1]][i + self.coord[0]] = self
-        self.drag = False
+                if GRIDS[self.side][j + self.coord[1]][i + self.coord[0]] != self and \
+                        GRIDS[self.side][j + self.coord[1]][i + self.coord[0]] is not None:
+                    available = False
+        if available:
+            # Resets hitbox for placement button to ship's new location
+            self.hitbox = self.img[self.rotate].get_rect(topleft=(self.coord[0] * 70, self.coord[1] * 70))
+            # Loops through all the now occupied squares, and sets them to occupied.
+            for i in range(self.size[0]):
+                for j in range(self.size[1]):
+                    GRIDS[self.side][j + self.coord[1]][i + self.coord[0]] = self
+            self.drag = False        # Set dragging status to false.
+            return True              # If the place is successfully placed, return True.
+        # ADD RECURSION LOOP HERE
 
     def pickup(self):
         for i in range(self.size[0]):
