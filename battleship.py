@@ -267,19 +267,18 @@ class CROSS:
 
     def draw(self):
         x, y = mouse.get_pos()
-        x = (x + self.OFFSET[0]) // 70 * 70 + self.offset
-        y = (y+self.OFFSET[1]) // 70 * 70
-        if -1 <= (x-self.offset - self.Offset)/70 < 10 and -1 <= (y-self.offset)/70 < 10:
+        x = ((x-self.offset)//70 + self.OFFSET[0]) * 70 + self.offset
+        y = (y//70+self.OFFSET[1]) * 70
+        if 0+self.Offset <= x < 700+self.Offset and 0 <= y < 700:
             win.blit(self.img, (x, y))
         return x, y
 
 
 class BIGCROSS:
     def __init__(self):
-        self.CROSSES = [[CROSS('UI/CROSSHAIR.png', 20, (i, j), True) for i in range(3)] for j in range(-1, 2)]
+        self.CROSSES = [[CROSS('UI/CROSSHAIR.png', 20, (i, j), True) for i in range(-1, 2)] for j in range(-1, 2)]
 
     def draw(self):
-
         for crosses in self.CROSSES:
             for cross in crosses:
                 cross.draw()
@@ -290,7 +289,10 @@ class BIGCROSS:
             for cross in crosses:
                 _X = (X-cross.offset-cross.Offset)//70 + cross.OFFSET[0]
                 _Y = Y//70 + cross.OFFSET[1]
-                strike(_X, _Y)
+                try:
+                    strike(_X, _Y)
+                except IndexError:
+                    pass
 
 
 def strike(x, y):
