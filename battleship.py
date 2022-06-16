@@ -1,3 +1,5 @@
+from typing import Any
+
 from pygame import *
 import random
 
@@ -220,6 +222,13 @@ class PUP(Button):
                             PUP.EMPTY_SPOTS[spot] = False
                             break
 
+    def draw(self):
+        # If in use, draw slightly to the right.
+        if self.inUse:
+            win.blit(self.img, (self.topleft[0]+20, self.topleft[1]))
+        else:
+            Button.draw(self)
+
     def Move(self, pos):
         Button.__init__(self, pos, (100, 100))
 
@@ -227,19 +236,17 @@ class PUP(Button):
 class Barrage(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 50), "BARRAGE.png", True)
-        self.cursor = BIGCROSS()
+        self.cursor = BIGCROSS()  # AOR cursor is selected for this effect
 
     def Select(self, click):
-        if self.click(click) and PUP.IN_GAME:
-            self.inUse = True
+        # If the button is getting clicked, the game is on and the ability is ready:
+        if self.click(click) and PUP.IN_GAME and self.ready:
+            self.inUse = True  # Store that it's in use.
         else:
             PUP.Select(self, click)
 
-    def draw(self):
-        if self.inUse:
-            win.blit(self.img, (self.topleft[0]+20, self.topleft[1]))
-        else:
-            Button.draw(self)
+    def strike(self):
+        self.cursor.strike()
 
     def __repr__(self):
         return f'Barrage {self.side}'
@@ -314,6 +321,24 @@ class BIGCROSS:
                     strike(_X, _Y)
                 except IndexError:
                     pass
+
+
+class LINECROSS:
+
+    def __init__(self, img: str, offset=0):
+        self.img = image.load("UI/"+img)
+
+    def draw(self):
+        pos = mouse.get_pos()[y]
+        pos = pos//70 * 70
+        for i in range(10):
+            win.blit(self.img, (320+70*i, pos))
+
+    def strike(self):
+        pos = mouse.get_pos()[y]
+        pos = pos//70
+        for i in range(10):
+            strike(i, pos)
 
 
 def strike(x, y):
@@ -580,8 +605,9 @@ while inGame:
                         elif (Event.pos[0]) // 70 * 70 >= 280:
                             for p in POWERS[player][0]:
                                 if p.inUse:
-                                    p.cursor.strike()
+                                    p.strike()
                                     p.inUse = False
+                                    p.ready = False
                                     break
                             else:
                                 x, y = Event.pos
