@@ -590,6 +590,8 @@ while inGame:
                             Paused = True
                         for p in POWERS[player][0]:
                             p.Select(Event)
+                    elif Event.type == KEYDOWN[K_RETURN]:
+                        inRound = False
 
             elif Menu == 1:
                 win.blit(aBG, (0, 0))
@@ -627,23 +629,28 @@ while inGame:
                                     p.inUse = False
                                     p.ready = False
                                     break
-                            elif canShoot:
-                                x, y = Event.pos
-                                x = (x - 300) // 70
-                                y //= 70
-                                strike(x, y)
-                                if ALL_UNITS[player][2].power():
-                                    ALL_UNITS[player][2].power(False)
-                                else:
-                                    canShoot = False
-                                break
+                            else:
+                                if canShoot:
+                                    x, y = Event.pos
+                                    x = (x - 300) // 70
+                                    y //= 70
+                                    strike(x, y)
+                                    if ALL_UNITS[player][2].power():
+                                        ALL_UNITS[player][2].power(False)
+                                    else:
+                                        canShoot = False
+                                    break
                         else:
                             for p in POWERS[player][0]:
                                 p.Select(Event)
                         Winner = checkWinner()
+                    elif Event.type == KEYDOWN[K_RETURN]:
+                        inRound = False
+
             display.update()
             if Winner:
                 inGame = False
+                inRound = False
                 break
         Between = True
         while Between:
