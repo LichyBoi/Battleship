@@ -360,6 +360,8 @@ def strike(x, y):
             GRIDS[1 - player][y][x].hit()
             if GRIDS[1 - player][y][x].name[:-1] == 'tk':
                 GRIDS[1 - player][y][x].power(True)
+    else:
+        return True
 
 def checkWinner():
     for player in range(2):
@@ -590,7 +592,7 @@ while inGame:
                             Paused = True
                         for p in POWERS[player][0]:
                             p.Select(Event)
-                    elif Event.type == KEYDOWN[K_RETURN]:
+                    elif Event.type == KEYUP and Event.key == [K_RETURN] and not canShoot:
                         inRound = False
 
             elif Menu == 1:
@@ -634,17 +636,16 @@ while inGame:
                                     x, y = Event.pos
                                     x = (x - 300) // 70
                                     y //= 70
-                                    strike(x, y)
-                                    if ALL_UNITS[player][2].power():
+                                    canShoot = strike(x, y)
+                                    if ALL_UNITS[player][2].power() and not canShoot:
                                         ALL_UNITS[player][2].power(False)
-                                    else:
-                                        canShoot = False
+                                        canShoot = True
                                     break
                         else:
                             for p in POWERS[player][0]:
                                 p.Select(Event)
                         Winner = checkWinner()
-                    elif Event.type == KEYDOWN[K_RETURN]:
+                    elif Event.type == KEYUP and Event.key == K_RETURN and not canShoot:
                         inRound = False
 
             display.update()
