@@ -62,7 +62,6 @@ class UNIT:
     def place(self, Random):
         if Random:
             isRotated = random.randint(0, 1)
-            print(isRotated)
             if isRotated == 1:
                 self.size = (self.size[1], self.size[0])
                 self.rotate = 1 - self.rotate
@@ -90,7 +89,6 @@ class UNIT:
             return True              # If the place is successfully placed, return True.
         if not available:
             self.place(True)
-        # ADD RECURSION LOOP HERE
 
     def pickup(self):
         for i in range(self.size[0]):
@@ -271,6 +269,18 @@ class Scout(PUP):
 class Bomb(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 350), "CARPETBOMB.png", True)
+        self.cursor = LINECROSS("CROSSHAIR.png")
+
+    def Select(self, click):
+        # If the button is getting clicked, the game is on and the ability is ready:
+        if self.click(click) and PUP.IN_GAME and self.ready:
+            self.inUse = True  # Store that it's in use.
+        else:
+            PUP.Select(self, click)
+
+    def strike(self):
+        self.cursor.strike()
+
 
     def __repr__(self):
         return f'Bomb {self.side}'
@@ -329,13 +339,13 @@ class LINECROSS:
         self.img = image.load("UI/"+img)
 
     def draw(self):
-        pos = mouse.get_pos()[y]
+        pos = mouse.get_pos()[1]
         pos = pos//70 * 70
         for i in range(10):
-            win.blit(self.img, (320+70*i, pos))
+            win.blit(self.img, (300+70*i, pos))
 
     def strike(self):
-        pos = mouse.get_pos()[y]
+        pos = mouse.get_pos()[1]
         pos = pos//70
         for i in range(10):
             strike(i, pos)
@@ -350,6 +360,14 @@ def strike(x, y):
             GRIDS[1 - player][y][x].hit()
             if GRIDS[1 - player][y][x].name[:-1] == 'tk':
                 GRIDS[1 - player][y][x].power(True)
+
+def checkWinner():
+    for player in range(2):
+        for unit in ALL_UNITS[player]:
+            if not unit.isDead:
+                break
+        else:
+            return 1-player
 
 
 # INITIALIZATION
@@ -420,8 +438,6 @@ while inMenu:
                                 if Event.key == K_RETURN:
                                     helpSlide += 1
                     display.update()
-            else:
-                print(Event.pos)
 
     display.update()
 
@@ -520,12 +536,14 @@ while Between:
 # Game Phase
 inGame = True
 PUP.IN_GAME = True
+Winner = None
 Menu = 0  # 0 - main; 1 = fire; 2 - settings.
 while inGame:
     for player, Units in enumerate(ALL_UNITS):
         inRound = True
         Menu = 0
         Paused = False
+        canShoot = True
         while inRound:
             if Menu == 0:
                 win.blit(BG, (0, 0))
@@ -609,7 +627,7 @@ while inGame:
                                     p.inUse = False
                                     p.ready = False
                                     break
-                            else:
+                            elif canShoot:
                                 x, y = Event.pos
                                 x = (x - 300) // 70
                                 y //= 70
@@ -617,12 +635,16 @@ while inGame:
                                 if ALL_UNITS[player][2].power():
                                     ALL_UNITS[player][2].power(False)
                                 else:
-                                    inRound = False
+                                    canShoot = False
                                 break
                         else:
                             for p in POWERS[player][0]:
                                 p.Select(Event)
+                        Winner = checkWinner()
             display.update()
+            if Winner:
+                inGame = False
+                break
         Between = True
         while Between:
             win.blit(SPLIT, (0, 0))
@@ -634,5 +656,4 @@ while inGame:
                         inRound = True
                         Between = False
                         break
-
             display.update()
