@@ -424,15 +424,10 @@ MENU = image.load('UI/MENU.png')
 newG = Button((380, 340), (220, 90))
 HELP = Button((580, 40), (165, 145))
 
-Help1 = image.load('UI/HELP.png')
-Help2 = image.load('UI/HELP (1).png')
-Help3 = image.load('UI/HELP (2).png')
-Help4 = image.load('UI/HELP (3).png')
-Help5 = image.load('UI/HELP (4).png')
-Help = [Help1,Help2,Help3,Help4,Help5]
+Help = [image.load(f'UI/HELP{i}.png') for i in range(5)]
 
 ResumeG = Button((200,160),(615,60))
-Forfit = Button((330,440),(365,65))
+Forfeit = Button((330, 440), (365, 65))
 # MENU
 inMenu = True
 while inMenu:
@@ -600,7 +595,7 @@ while inGame:
                         elif Event.type == MOUSEBUTTONUP:
                             if ResumeG.click(Event):
                                 Paused = False
-                            elif Forfit.click(Event):
+                            elif Forfeit.click(Event):
                                 quit()  # Change
 
                 for Event in event.get():
