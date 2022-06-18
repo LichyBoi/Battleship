@@ -6,10 +6,11 @@ import random
 
 class UNIT:
     def __init__(self, size: tuple, side: int, tp: str, coord: tuple, img: str, deadImage):
-        self.coord = coord
-        self.size = size
-        self.side = side
-        self.name = f'{tp}{side}'
+        # Initialize values
+        self.coord = coord  # Uses 0-9 x 0-9 grid (aka uses grid)
+        self.size = size    # Uses grid
+        self.side = side    # int from 0-1, acts as index
+        self.name = f'{tp}{side}'  # DLT
         self.img = image.load('Ships/' + img)
         self.img = [self.img, transform.rotate(self.img, 90)]
         self.rotate = 0
@@ -201,6 +202,7 @@ class PUP(Button):
         self.agro = agro
         self.startpos = pos
 
+    # noinspection PyTypeChecker
     def Select(self, click):
         if self.click(click):
             if not PUP.IN_GAME:
@@ -534,7 +536,6 @@ while inGame:
         Paused = False
         canShoot = True
         if not inGame:
-            print('in here')
             break
         Between = True
         while Between:
@@ -647,13 +648,11 @@ while inGame:
                             for p in POWERS[player][0]:
                                 p.Select(Event)
                         Winner = checkWinner()
-                        print(Winner)
                     elif Event.type == KEYUP and Event.key == K_RETURN and not canShoot:
                         inRound = False
 
             display.update()
             if Winner is not None:
-                print('in here')
                 inGame = False
                 inRound = False
                 break
