@@ -11,6 +11,7 @@ class UNIT:
         self.size = size    # Uses grid
         self.side = side    # int from 0-1, acts as index
         self.name = f'{tp}{side}'  # DLT
+        # img is a list of the unit's image, and its rotated version. Rotate acts as the index for this list.
         self.img = image.load('Ships/' + img)
         self.img = [self.img, transform.rotate(self.img, 90)]
         self.rotate = 0
@@ -18,35 +19,42 @@ class UNIT:
         self.drag = False
         self.health = size[0] * size[1]
         self.isDead = False
-        if deadImage != '':
-            self.deadImage = image.load('Ships/' + deadImage)
-            self.deadImage = [self.deadImage, transform.rotate(self.deadImage, 90)]
+        # Same structure as img
+        self.deadImage = image.load('Ships/' + deadImage)
+        self.deadImage = [self.deadImage, transform.rotate(self.deadImage, 90)]
 
+    # Return - Unit being dragged
     def checkClick(self, click):
         # Rotate on right click
         if click.button == 3 and self.drag:
             self.size = (self.size[1], self.size[0])
             self.rotate = 1 - self.rotate
 
+        # On left click:
         elif click.button == 1:
+            # If unit is already dragged, try placing.
             if self.drag:
 
                 if self.place(False):
                     return None
                 else:
                     return self
-
+            # Else, start dragging unit.
             elif self.hitbox.collidepoint(click.pos):
                 self.pickup()
                 return self
 
+    # Draw is used in menu 0 and 1, but only in 1 when the unit is dead.
+    # When being dragged, unit.draw() returns temporary coordinates.
     def draw(self, dead=False):
         if not dead:
+            # If being dragged, use mouse coordinates.
             if self.drag:
+                # Get mouse coords, and convert them to 0-9 grid coords for snapping.
                 x, y = mouse.get_pos()
                 x //= 70
                 y //= 70
-
+                # Prevents x, y from being outside of grid.
                 if x + self.size[0] > 9:
                     x = 10 - self.size[0]
                 if y + self.size[1] > 9:
@@ -59,18 +67,17 @@ class UNIT:
         else:
             win.blit(self.deadImage[self.rotate], (self.coord[0] * 70 + 300, self.coord[1] * 70))
 
-
+    # Places and stores data of unit. Allows for randomized placement.
     def place(self, Random):
+        # If random is enabled, choose rotation, and generate random position within size constraints.
         if Random:
-            isRotated = random.randint(0, 1)
-            if isRotated == 1:
+            self.rotate = random.randint(0, 1)
+            if self.rotate:
                 self.size = (self.size[1], self.size[0])
-                self.rotate = 1 - self.rotate
-
-            self.coord = (random.randint(0, 10 - self.size[0]), random.randint(0, random.randint(0, 10 - self.size[1])))
+            self.coord = tuple([random.randint(0, 10 - self.size[i]) for i in range(2)])
 
         else:
-            self.coord = self.draw() # Get temporary coordinates from draw()
+            self.coord = self.draw()  # Get temporary coordinates from draw()
 
         # Start with True, then check every occupying square of unit for other units. Return false if occupied.
         available = True
@@ -88,9 +95,10 @@ class UNIT:
                     GRIDS[self.side][j + self.coord[1]][i + self.coord[0]] = self
             self.drag = False        # Set dragging status to false.
             return True              # If the place is successfully placed, return True.
-        if not available:
+        elif Random:
             self.place(True)
 
+    # Removes any data of item from grid, enables drag.
     def pickup(self):
         for i in range(self.size[0]):
             for j in range(self.size[1]):
@@ -100,25 +108,29 @@ class UNIT:
                     pass
         self.drag = True
 
+    # Removes health, declares death if necessary.
     def hit(self):
         self.health -= 1
         if self.health <= 0:
             self.isDead = True
 
+    # DLT
     def __str__(self):
         return self.name
 
+    # DLT
     __repr__ = __str__
 
 
-# Paratrooper - 1x2 - Draw Outline
+# Paratrooper - 1x2
 class PA(UNIT):
+    # Initializes unit, and special dragging image.
     def __init__(self, side: int):
         UNIT.__init__(self, (1, 2), side, 'pa', (12, 5), 'PARA.png', 'Dpara.png')
         self.dragImage = image.load('Ships/dragPara.png')
         self.dragImage = [self.dragImage, transform.rotate(self.dragImage, 90)]
 
-    # Copied from UNIT for drag purpose
+    # Copied from UNIT for drag picture
     def draw(self, dead=False):
         if self.drag:
             x, y = mouse.get_pos()
@@ -150,12 +162,15 @@ class AT(UNIT):
 
 
 # Tank - 2x2
+# Ability - On first hit taken, owner takes ane extra shot
 class TK(UNIT):
+    # Diff: Removes rotation after init.
     def __init__(self, side: int):
         UNIT.__init__(self, (2, 2), side, 'tk', (12, 3), 'tank.png', 'Dtank.png')
         self.img = [self.img[0], self.img[0]]
         self.Power = False
 
+    # If no argument is given, return current status. Else, set new status.
     def power(self, Power=None):
         if Power is None:
             return self.Power
@@ -163,13 +178,15 @@ class TK(UNIT):
             self.Power = Power
 
 
-# Finish Later - War Train - 1x5
+# War Train - 1x5
 class WT(UNIT):
     def __init__(self, side: int):
         UNIT.__init__(self, (1, 5), side, 'wt', (13, 5), 'WARTRAIN.png', 'Dtrain.png')
 
 
+# General class for any button-like object.
 class Button:
+    # Image is optional. Allows for height and width as well.
     def __init__(self, topleft: tuple, img: [str, tuple], result=True):
         if type(img) == str:
             self.img = image.load(img)
@@ -187,7 +204,8 @@ class Button:
             return self.result
 
 
-# PowerUp section
+# PowerUp section - First Inheritor.
+# General class for all powerups.
 class PUP(Button):
     IN_GAME = False
     EMPTY_SPOTS = [True, True, True]
