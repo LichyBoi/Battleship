@@ -6,10 +6,11 @@ import random
 
 class UNIT:
     def __init__(self, size: tuple, side: int, tp: str, coord: tuple, img: str, deadImage):
-        self.coord = coord
-        self.size = size
-        self.side = side
-        self.name = f'{tp}{side}'
+        # Initialize values
+        self.coord = coord  # Uses 0-9 x 0-9 grid (aka uses grid)
+        self.size = size    # Uses grid
+        self.side = side    # int from 0-1, acts as index
+        self.name = f'{tp}{side}'  # DLT
         self.img = image.load('Ships/' + img)
         self.img = [self.img, transform.rotate(self.img, 90)]
         self.rotate = 0
@@ -201,6 +202,7 @@ class PUP(Button):
         self.agro = agro
         self.startpos = pos
 
+    # noinspection PyTypeChecker
     def Select(self, click):
         if self.click(click):
             if not PUP.IN_GAME:
@@ -516,19 +518,6 @@ for player, units in enumerate(ALL_UNITS):
             p.Move((850, 550-(150*len(dList))))
     POWERS[player] = [aList, dList]
 
-Between = True
-while Between:
-    win.blit(SPLIT, (0, 0))
-    for Event in event.get():
-        if Event.type == QUIT:
-            quit()
-        if Event.type == KEYUP:
-            if Event.key == K_RETURN:
-                inRound = True
-                Between = False
-                break
-
-    display.update()
 
 # Game Phase
 inGame = True
@@ -541,6 +530,20 @@ while inGame:
         Menu = 0
         Paused = False
         canShoot = True
+        if not inGame:
+            break
+        Between = True
+        while Between:
+            win.blit(SPLIT, (0, 0))
+            for Event in event.get():
+                if Event.type == QUIT:
+                    quit()
+                if Event.type == KEYUP:
+                    if Event.key == K_RETURN:
+                        inRound = True
+                        Between = False
+                        break
+            display.update()
         while inRound:
             if Menu == 0:
                 win.blit(BG, (0, 0))
@@ -644,19 +647,8 @@ while inGame:
                         inRound = False
 
             display.update()
-            if Winner:
+            if Winner is not None:
                 inGame = False
                 inRound = False
                 break
-        Between = True
-        while Between:
-            win.blit(SPLIT, (0, 0))
-            for Event in event.get():
-                if Event.type == QUIT:
-                    quit()
-                if Event.type == KEYUP:
-                    if Event.key == K_RETURN:
-                        inRound = True
-                        Between = False
-                        break
-            display.update()
+
