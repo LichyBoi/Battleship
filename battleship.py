@@ -220,7 +220,7 @@ class PUP(Button):
         self.agro = agro
         self.startpos = pos
 
-    # noinspection PyTypeChecker
+    # 
     def Select(self, click):
         if self.click(click):
             if not PUP.IN_GAME:
