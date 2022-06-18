@@ -521,19 +521,6 @@ for player, units in enumerate(ALL_UNITS):
             p.Move((850, 550-(150*len(dList))))
     POWERS[player] = [aList, dList]
 
-Between = True
-while Between:
-    win.blit(SPLIT, (0, 0))
-    for Event in event.get():
-        if Event.type == QUIT:
-            quit()
-        if Event.type == KEYUP:
-            if Event.key == K_RETURN:
-                inRound = True
-                Between = False
-                break
-
-    display.update()
 
 # Game Phase
 inGame = True
@@ -546,6 +533,21 @@ while inGame:
         Menu = 0
         Paused = False
         canShoot = True
+        if not inGame:
+            print('in here')
+            break
+        Between = True
+        while Between:
+            win.blit(SPLIT, (0, 0))
+            for Event in event.get():
+                if Event.type == QUIT:
+                    quit()
+                if Event.type == KEYUP:
+                    if Event.key == K_RETURN:
+                        inRound = True
+                        Between = False
+                        break
+            display.update()
         while inRound:
             if Menu == 0:
                 win.blit(BG, (0, 0))
@@ -645,23 +647,14 @@ while inGame:
                             for p in POWERS[player][0]:
                                 p.Select(Event)
                         Winner = checkWinner()
+                        print(Winner)
                     elif Event.type == KEYUP and Event.key == K_RETURN and not canShoot:
                         inRound = False
 
             display.update()
-            if Winner:
+            if Winner is not None:
+                print('in here')
                 inGame = False
                 inRound = False
                 break
-        Between = True
-        while Between:
-            win.blit(SPLIT, (0, 0))
-            for Event in event.get():
-                if Event.type == QUIT:
-                    quit()
-                if Event.type == KEYUP:
-                    if Event.key == K_RETURN:
-                        inRound = True
-                        Between = False
-                        break
-            display.update()
+
