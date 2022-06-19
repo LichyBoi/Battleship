@@ -69,9 +69,9 @@ class UNIT:
     def place(self, Random):
         # If random is enabled, choose rotation, and generate random position within size constraints.
         if Random:
-            self.rotate = random.randint(0, 1)
-            if self.rotate:
+            if random.randint(0, 1):
                 self.size = (self.size[1], self.size[0])
+                self.rotate = 1-self.rotate
             self.coord = tuple([random.randint(0, 10 - self.size[i]) for i in range(2)])
 
         else:
@@ -376,11 +376,16 @@ class LINECROSS:
         for i in range(10):
             if HITGRIDS[1 - player][pos][i] is None:
                 if GRIDS[1 - player][pos][i] is not None:
-                    HITGRIDS[1 - player][pos][i] = 1
+                    Unit = GRIDS[1 - player][pos][i]
+                    print(Unit)
+                    for x in range(Unit.size[0]):
+                        for y in range(Unit.size[1]):
+                            if HITGRIDS[1 - player][y + Unit.coord[1]][x + Unit.coord[0]] is None:
+                                HITGRIDS[1 - player][y + Unit.coord[1]][x + Unit.coord[0]] = 2
 
 
 def strike(x, y):
-    if HITGRIDS[1 - player][y][x] is None:
+    if HITGRIDS[1 - player][y][x] == 2 or HITGRIDS[1 - player][y][x] is None:
         if GRIDS[1 - player][y][x] is None:
             HITGRIDS[1 - player][y][x] = False
         else:
@@ -426,6 +431,8 @@ aHIT = image.load('UI/AHIT.png')
 MISS = image.load('UI/HOLE.png')
 aMISS = image.load('UI/AMISS.png')
 
+aSCOUT = image.load('UI/CURSOR.png')
+
 BAR = Button((965, 0), 'UI/SLIDE.png')
 aBAR = Button((0, 0), 'UI/SLIDE2.png')
 
@@ -445,6 +452,7 @@ while inMenu:
     for Event in event.get():
         if Event.type == QUIT:
             quit()
+        # On click, check for new game button and help button.
         elif Event.type == MOUSEBUTTONUP:
             if newG.click(Event):
                 inMenu = False
@@ -469,7 +477,6 @@ while inMenu:
 
 # PLACING PHASE
 ALL_UNITS = [[PT(i), AT(i), TK(i), PA(i), WT(i)] for i in range(2)]
-print(ALL_UNITS)
 ALL_POWERS = [[Barrage(i), SeaCargo(i), Scout(i), Bomb(i), Supply(i)] for i in range(2)]
 POWERS = [[], []]
 for player, units in enumerate(ALL_UNITS):
@@ -592,7 +599,7 @@ while inGame:
                 for row, items in enumerate(HITGRIDS[player]):
                     for column, item in enumerate(items):
                         if item is not None:
-                            if item:
+                            if item and item != 2:
                                 win.blit(HIT, (70 * column, 70 * row))
                             else:
                                 win.blit(MISS, (70 * column, 70 * row))
@@ -637,8 +644,8 @@ while inGame:
                 for row, items in enumerate(HITGRIDS[1 - player]):
                     for column, item in enumerate(items):
                         if item is not None:
-                            if item == 1:
-                                win.blit(HIT, (70 * column + 300, 70 * row))
+                            if item == 2:
+                                win.blit(aSCOUT, (70 * column + 300, 70 * row))
                             elif item:
                                 win.blit(aHIT, (70 * column + 300, 70 * row))
                             else:
