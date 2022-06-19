@@ -1,5 +1,3 @@
-from typing import Any
-
 from pygame import *
 import random
 
@@ -220,52 +218,56 @@ class PUP(Button):
         self.agro = agro
         self.startpos = pos
 
-    # 
+    # Activates on click. Different effect depending on stage of game.
     def Select(self, click):
         if self.click(click):
-            if not PUP.IN_GAME:
+            # If the button is getting clicked, the game is on and the ability is ready, change inUse status.
+            if PUP.IN_GAME and self.ready:
+                if self.inUse:
+                    self.inUse = False
+                else:
+                    self.inUse = True
+            else:
+                # If game hasn't started, change selection status of powerup.
+                if not PUP.IN_GAME:
+                    if self.select:
+                        self.select = False
+                        PUP.EMPTY_SPOTS[(self.topleft[0] - 900) // (-100)] = True
+                        self.Move(self.startpos)
+                        POWERS[self.side].remove(self)
 
-                if self.select:
-                    self.select = False
-                    PUP.EMPTY_SPOTS[(self.topleft[0] - 900) // (-100)] = True
-                    self.Move(self.startpos)
-                    POWERS[self.side].remove(self)
-
-                elif len(POWERS[self.side]) < 3:
-                    self.select = True
-                    POWERS[self.side].append(self)
-                    for spot in range(3):
-                        if PUP.EMPTY_SPOTS[spot]:
-                            self.Move((900 - 100 * spot, 600))
-                            PUP.EMPTY_SPOTS[spot] = False
-                            break
+                    elif len(POWERS[self.side]) < 3:
+                        self.select = True
+                        POWERS[self.side].append(self)
+                        for spot in range(3):
+                            if PUP.EMPTY_SPOTS[spot]:
+                                self.Move((900 - 100 * spot, 600))
+                                PUP.EMPTY_SPOTS[spot] = False
+                                break
 
     def draw(self):
         # If in use, draw slightly to the right.
         if self.inUse:
-            win.blit(self.img, (self.topleft[0]+20, self.topleft[1]))
+            win.blit(self.img, (self.topleft[0]+25, self.topleft[1]))
         else:
             Button.draw(self)
 
+    # Resets button hitbox
     def Move(self, pos):
         Button.__init__(self, pos, (100, 100))
 
 
+# AOE Damage - 1 use per game
 class Barrage(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 50), "BARRAGE.png", True)
-        self.cursor = BIGCROSS()  # AOR cursor is selected for this effect
+        self.cursor = BIGCROSS("CROSSHAIR.png")  # AOR cursor is selected for this effect
 
-    def Select(self, click):
-        # If the button is getting clicked, the game is on and the ability is ready:
-        if self.click(click) and PUP.IN_GAME and self.ready:
-            self.inUse = True  # Store that it's in use.
-        else:
-            PUP.Select(self, click)
-
+    # Use ability after aiming
     def strike(self):
         self.cursor.strike()
 
+    # DLT
     def __repr__(self):
         return f'Barrage {self.side}'
 
@@ -281,27 +283,25 @@ class SeaCargo(PUP):
 class Scout(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 250), "SCOUT.png", True)
+        self.cursor = LINECROSS("CURSOR.png")
+
+    def strike(self):
+        self.cursor.scout()
 
     def __repr__(self):
         return f'Scout {self.side}'
 
 
+# Linear Damage - 1 use per game
 class Bomb(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 350), "CARPETBOMB.png", True)
         self.cursor = LINECROSS("CROSSHAIR.png")
 
-    def Select(self, click):
-        # If the button is getting clicked, the game is on and the ability is ready:
-        if self.click(click) and PUP.IN_GAME and self.ready:
-            self.inUse = True  # Store that it's in use.
-        else:
-            PUP.Select(self, click)
-
     def strike(self):
         self.cursor.strike()
 
-
+    # DLT
     def __repr__(self):
         return f'Bomb {self.side}'
 
@@ -314,15 +314,18 @@ class Supply(PUP):
         return f'Supply {self.side}'
 
 
+# General crosshair
 class CROSS:
     def __init__(self, img: str, offset=0, OFFSET=(0, 0), Attack=False):
         self.img = image.load(img)
+        # offset accounts for minor imperfections. OFFSET accounts for BIGCROSS. Offset accounts for side of board.
         self.offset = offset
         self.OFFSET = OFFSET
         self.Offset = 0
         if Attack:
             self.Offset += 300
 
+    # Takes all offsets into account and draws crosshair
     def draw(self):
         x, y = mouse.get_pos()
         x = ((x-self.offset)//70 + self.OFFSET[0]) * 70 + self.offset
@@ -332,9 +335,10 @@ class CROSS:
         return x, y
 
 
+# AOE cross
 class BIGCROSS:
-    def __init__(self):
-        self.CROSSES = [[CROSS('UI/CROSSHAIR.png', 20, (i, j), True) for i in range(-1, 2)] for j in range(-1, 2)]
+    def __init__(self, img):
+        self.CROSSES = [[CROSS("UI/"+img, 20, (i, j), True) for i in range(-1, 2)] for j in range(-1, 2)]
 
     def draw(self):
         for crosses in self.CROSSES:
@@ -354,21 +358,25 @@ class BIGCROSS:
 
 
 class LINECROSS:
-
     def __init__(self, img: str, offset=0):
         self.img = image.load("UI/"+img)
 
     def draw(self):
-        pos = mouse.get_pos()[1]
-        pos = pos//70 * 70
+        pos = mouse.get_pos()[1] //70 * 70
         for i in range(10):
             win.blit(self.img, (300+70*i, pos))
 
     def strike(self):
-        pos = mouse.get_pos()[1]
-        pos = pos//70
+        pos = mouse.get_pos()[1] // 70
         for i in range(10):
             strike(i, pos)
+
+    def scout(self):
+        pos = mouse.get_pos()[1] // 70
+        for i in range(10):
+            if HITGRIDS[1 - player][pos][i] is None:
+                if GRIDS[1 - player][pos][i] is not None:
+                    HITGRIDS[1 - player][pos][i] = 1
 
 
 def strike(x, y):
@@ -382,6 +390,7 @@ def strike(x, y):
                 GRIDS[1 - player][y][x].power(True)
     else:
         return True
+
 
 def checkWinner():
     for player in range(2):
@@ -409,7 +418,7 @@ RANDOM = Button((770,630),'UI/RANDOM.png')
 
 AIM = CROSS('UI/CROSSHAIR.png', 20, Attack=True)
 CUR = CROSS('UI/CURSOR.png')
-bAIM = BIGCROSS()
+bAIM = BIGCROSS('CROSSHAIR.png')
 
 HIT = image.load('UI/FIRE.png')
 aHIT = image.load('UI/AHIT.png')
@@ -460,6 +469,7 @@ while inMenu:
 
 # PLACING PHASE
 ALL_UNITS = [[PT(i), AT(i), TK(i), PA(i), WT(i)] for i in range(2)]
+print(ALL_UNITS)
 ALL_POWERS = [[Barrage(i), SeaCargo(i), Scout(i), Bomb(i), Supply(i)] for i in range(2)]
 POWERS = [[], []]
 for player, units in enumerate(ALL_UNITS):
@@ -606,12 +616,13 @@ while inGame:
                             Menu = 1
                         elif pBTN.click(Event):
                             Paused = True
-                        for p in POWERS[player][0]:
+                        for p in POWERS[player][1]:
                             p.Select(Event)
-                    elif Event.type == KEYUP and Event.key == [K_RETURN] and not canShoot:
+                    elif Event.type == KEYUP and Event.key == K_RETURN and not canShoot:
                         inRound = False
 
             elif Menu == 1:
+                Using_Power = False
                 win.blit(aBG, (0, 0))
                 aBAR.draw()
                 for p in POWERS[player][0]:
@@ -619,13 +630,16 @@ while inGame:
                 for p in POWERS[player][0]:
                     if p.inUse:
                         p.cursor.draw()
+                        Using_Power = True
                         break
                 else:
                     AIM.draw()
                 for row, items in enumerate(HITGRIDS[1 - player]):
                     for column, item in enumerate(items):
                         if item is not None:
-                            if item:
+                            if item == 1:
+                                win.blit(HIT, (70 * column + 300, 70 * row))
+                            elif item:
                                 win.blit(aHIT, (70 * column + 300, 70 * row))
                             else:
                                 win.blit(aMISS, (70 * column + 300, 70 * row))
@@ -637,7 +651,12 @@ while inGame:
                         quit()
                     elif Event.type == MOUSEBUTTONUP:
                         for p in POWERS[player][0]:
-                            p.Select(Event)
+                            if Using_Power:
+                                if p.inUse:
+                                    p.Select(Event)
+                                    break
+                            else:
+                                p.Select(Event)
                         if aBAR.click(Event):
                             Menu = 0
                         elif (Event.pos[0]) // 70 * 70 >= 280:
@@ -657,9 +676,7 @@ while inGame:
                                         ALL_UNITS[player][2].power(False)
                                         canShoot = True
                                     break
-                        else:
-                            for p in POWERS[player][0]:
-                                p.Select(Event)
+
                         Winner = checkWinner()
                     elif Event.type == KEYUP and Event.key == K_RETURN and not canShoot:
                         inRound = False
@@ -669,4 +686,3 @@ while inGame:
                 inGame = False
                 inRound = False
                 break
-
