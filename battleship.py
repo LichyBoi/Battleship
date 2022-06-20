@@ -438,7 +438,9 @@ class LINECROSS:
                                 if HITGRIDS[1 - player][y + Unit.coord[1]][x + Unit.coord[0]] is None:
                                     HITGRIDS[1 - player][y + Unit.coord[1]][x + Unit.coord[0]] = 2
         else:
-            print("Scout shot")
+            win.blit(ATP, (0, 0))
+            display.flip()
+            time.delay(1000)
 
 
 def strike(x, y):
@@ -485,6 +487,7 @@ PAUSE = image.load('UI/PAUSE.png')
 SPLIT = image.load('UI/SPLIT.png')
 P1W = image.load('UI/P1win.png')
 P2W = image.load('UI/P2win.png')
+ATP = image.load('UI/ATpower.png')
 
 pBTN = Button((910, 0), 'UI/pauseBTN.png')
 RANDOM = Button((770,630),'UI/RANDOM.png')
