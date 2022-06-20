@@ -304,7 +304,6 @@ class SeaCargo(PUP):
         _Y //= 70
         self.strikeCoords = (_X, _Y)
 
-
     def progress(self):
         if self.waitCount < self.length and self.USING:
             self.waitCount += 1
@@ -353,6 +352,15 @@ class Bomb(PUP):
 class Supply(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 450), "AIRCARGO.png", False)
+        self.cursor = CUR
+
+    def strike(self):
+        _X, _Y = mouse.get_pos()
+        _X //= 70
+        _Y //= 70
+        heal(_X, _Y)
+        self.ready = False
+        self.inUse = False
 
     def __repr__(self):
         return f'Supply {self.side}'
