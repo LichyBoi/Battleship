@@ -309,10 +309,9 @@ class SeaCargo(PUP):
         if self.waitCount < self.length and self.USING:
             self.waitCount += 1
             print(self.waitCount)
-        else:
-            print('HEALED')
+        elif self.waitCount == self.length:
+            self.waitCount += 1
             self.USING = False
-
             for i in range(-1,2):
                 for j in range(-1,2):
                     _X, _Y = self.strikeCoords
