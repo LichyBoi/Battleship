@@ -257,12 +257,16 @@ class PUP(Button):
     def Move(self, pos):
         Button.__init__(self, pos, (100, 100))
 
+    # Prevents errors
+    def progress(self):
+        return None
+
 
 # AOE Damage - 1 use per game
 class Barrage(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 50), "BARRAGE.png", True)
-        self.cursor = BIGCROSS("CROSSHAIR.png")  # AOR cursor is selected for this effect
+        self.cursor = BIGCROSS("CROSSHAIR.png", off=20)  # AOR cursor is selected for this effect
 
     # Use ability after aiming
     def strike(self):
@@ -276,6 +280,45 @@ class Barrage(PUP):
 class SeaCargo(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 150), "SEACARGO.png", False)
+        self.cursor = BIGCROSS('CURSOR.png', False)
+        self.waitCount = 0
+        self.USING = False
+        self.strikeCoords = (0,0)
+        self.length = 2
+
+    def Select(self, click):
+        if self.click(click):
+            if PUP.IN_GAME and self.ready:
+                if self.USING and self.waitCount >= self.length:
+                    self.USING = False
+                else:
+                    self.inUse = True
+            else:
+                PUP.Select(self, click)
+
+    def strike(self):
+        self.USING = True
+        self.inUse = False
+        self.ready = False
+        _X, _Y = mouse.get_pos()
+        _X //=70
+        _Y //= 70
+        self.strikeCoords = (_X, _Y)
+
+    def progress(self):
+        if self.waitCount < self.length and self.USING:
+            self.waitCount += 1
+            print(self.waitCount)
+        elif self.waitCount == self.length:
+            self.waitCount += 1
+            self.USING = False
+            for i in range(-1,2):
+                for j in range(-1,2):
+                    _X, _Y = self.strikeCoords
+                    try:
+                        heal(_X+i, _Y+j)
+                    except IndexError:
+                        pass
 
     def __repr__(self):
         return f'SeaCargo {self.side}'
@@ -297,7 +340,7 @@ class Scout(PUP):
 class Bomb(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 350), "CARPETBOMB.png", True)
-        self.cursor = LINECROSS("CROSSHAIR.png")
+        self.cursor = LINECROSS("CROSSHAIR.png", False)
 
     def strike(self):
         self.cursor.strike()
@@ -310,6 +353,15 @@ class Bomb(PUP):
 class Supply(PUP):
     def __init__(self, side):
         PUP.__init__(self, side, (850, 450), "AIRCARGO.png", False)
+        self.cursor = CUR
+
+    def strike(self):
+        _X, _Y = mouse.get_pos()
+        _X //= 70
+        _Y //= 70
+        heal(_X, _Y)
+        self.ready = False
+        self.inUse = False
 
     def __repr__(self):
         return f'Supply {self.side}'
@@ -338,8 +390,8 @@ class CROSS:
 
 # AOE cross
 class BIGCROSS:
-    def __init__(self, img):
-        self.CROSSES = [[CROSS("UI/"+img, 20, (i, j), True) for i in range(-1, 2)] for j in range(-1, 2)]
+    def __init__(self, img, attack=True, off=0):
+        self.CROSSES = [[CROSS("UI/"+img, off, (i, j), attack) for i in range(-1, 2)] for j in range(-1, 2)]
 
     def draw(self):
         for crosses in self.CROSSES:
@@ -356,6 +408,7 @@ class BIGCROSS:
                     strike(_X, _Y)
                 except IndexError:
                     pass
+
 
 
 class LINECROSS:
@@ -399,6 +452,15 @@ def strike(x, y):
                 GRIDS[1 - player][y][x].power(True)
     else:
         return True
+
+
+def heal(x, y):
+    HITGRIDS[player][y][x] = None
+    try:
+        GRIDS[player][y][x].health += 1
+        GRIDS[player][y][x].isDead = False
+    except AttributeError:
+        pass
 
 
 def checkWinner():
@@ -585,14 +647,18 @@ while inGame:
                         Between = False
                         break
             display.update()
+
+        for p in POWERS[player][1]:
+            p.progress()
+
         while inRound:
             if Menu == 0:
                 win.blit(BG, (0, 0))
                 BAR.draw()
                 pBTN.draw()
+
                 for p in POWERS[player][1]:
                     p.draw()
-
                 for p in POWERS[player][1]:
                     if p.inUse:
                         p.cursor.draw()
@@ -605,8 +671,9 @@ while inGame:
                 for row, items in enumerate(HITGRIDS[player]):
                     for column, item in enumerate(items):
                         if item is not None:
-                            if item and item != 2:
-                                win.blit(HIT, (70 * column, 70 * row))
+                            if item:
+                                if item != 2:
+                                    win.blit(HIT, (70 * column, 70 * row))
                             else:
                                 win.blit(MISS, (70 * column, 70 * row))
 
@@ -620,19 +687,26 @@ while inGame:
                                 Paused = False
                             elif Forfeit.click(Event):
                                 quit()  # Change
-
-                for Event in event.get():
-                    if Event.type == QUIT:
-                        quit()
-                    elif Event.type == MOUSEBUTTONUP:
-                        if BAR.click(Event):
-                            Menu = 1
-                        elif pBTN.click(Event):
-                            Paused = True
-                        for p in POWERS[player][1]:
-                            p.Select(Event)
-                    elif Event.type == KEYUP and Event.key == K_RETURN and not canShoot:
-                        inRound = False
+                else:
+                    for Event in event.get():
+                        if Event.type == QUIT:
+                            quit()
+                        elif Event.type == MOUSEBUTTONUP:
+                            if BAR.click(Event):
+                                Menu = 1
+                            elif pBTN.click(Event):
+                                Paused = True
+                                heal(x, y)
+                            for p in POWERS[player][1]:
+                                if p.inUse:
+                                    p.Select(Event)
+                                    p.strike()
+                                    break
+                            else:
+                                for p in POWERS[player][1]:
+                                    p.Select(Event)
+                        elif Event.type == KEYUP and Event.key == K_RETURN and not canShoot:
+                            inRound = False
 
             elif Menu == 1:
                 Using_Power = False
