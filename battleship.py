@@ -159,6 +159,7 @@ class AT(UNIT):
         UNIT.__init__(self, (1, 3), side, 'at', (12, 0), 'artillery.png', 'Dart_plat.png')
 
 
+
 # Tank - 2x2
 # Ability - On first hit taken, owner takes ane extra shot
 class TK(UNIT):
@@ -373,15 +374,18 @@ class LINECROSS:
 
     def scout(self):
         pos = mouse.get_pos()[1] // 70
-        for i in range(10):
-            if HITGRIDS[1 - player][pos][i] is None:
-                if GRIDS[1 - player][pos][i] is not None:
-                    Unit = GRIDS[1 - player][pos][i]
-                    print(Unit)
-                    for x in range(Unit.size[0]):
-                        for y in range(Unit.size[1]):
-                            if HITGRIDS[1 - player][y + Unit.coord[1]][x + Unit.coord[0]] is None:
-                                HITGRIDS[1 - player][y + Unit.coord[1]][x + Unit.coord[0]] = 2
+        if ALL_UNITS[1-player][1].isDead:
+            for i in range(10):
+                if HITGRIDS[1 - player][pos][i] is None:
+                    if GRIDS[1 - player][pos][i] is not None:
+                        Unit = GRIDS[1 - player][pos][i]
+                        print(Unit)
+                        for x in range(Unit.size[0]):
+                            for y in range(Unit.size[1]):
+                                if HITGRIDS[1 - player][y + Unit.coord[1]][x + Unit.coord[0]] is None:
+                                    HITGRIDS[1 - player][y + Unit.coord[1]][x + Unit.coord[0]] = 2
+        else:
+            print("Scout shot")
 
 
 def strike(x, y):
@@ -417,6 +421,8 @@ BG = image.load('UI/BG.png')
 aBG = image.load('UI/AG.png')
 PAUSE = image.load('UI/PAUSE.png')
 SPLIT = image.load('UI/SPLIT.png')
+P1W = image.load('UI/P1win.png')
+P2W = image.load('UI/P2win.png')
 
 pBTN = Button((910, 0), 'UI/pauseBTN.png')
 RANDOM = Button((770,630),'UI/RANDOM.png')
@@ -685,6 +691,7 @@ while inGame:
                                     break
 
                         Winner = checkWinner()
+
                     elif Event.type == KEYUP and Event.key == K_RETURN and not canShoot:
                         inRound = False
 
@@ -693,3 +700,13 @@ while inGame:
                 inGame = False
                 inRound = False
                 break
+
+if Winner == 0:
+    win.blit(P1W, (0, 0))
+    display.update()
+elif Winner == 1:
+    win.blit(P2W, (0, 0))
+    display.update()
+else:
+    print('huh?')
+
